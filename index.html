@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Expense Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>Expense Tracker</h1>
+      <p class="subtitle">A tiny expense tracker, built end-to-end by the ai-native-sdlc agent org.</p>
+    </div>
+    <div class="header-actions">
+      <button id="export-btn" class="btn ghost" title="Download expenses as JSON">Export</button>
+      <button id="import-btn" class="btn ghost" title="Import expenses from JSON">Import</button>
+      <input id="import-file" type="file" accept=".json,application/json" hidden>
+    </div>
+  </header>
+
+  <main>
+    <section class="summary" aria-label="Summary">
+      <div class="card summary-card">
+        <span class="label">Total spent</span>
+        <span id="total" class="value">€0.00</span>
+      </div>
+      <div class="card summary-card">
+        <span class="label">This month</span>
+        <span id="month-total" class="value">€0.00</span>
+      </div>
+      <div class="card summary-card">
+        <span class="label">Transactions</span>
+        <span id="count" class="value">0</span>
+      </div>
+    </section>
+
+    <section class="card form-card" aria-label="Add an expense">
+      <form id="expense-form">
+        <input id="description" type="text" placeholder="What did you spend on?" required maxlength="80">
+        <input id="amount" type="number" placeholder="Amount" min="0.01" step="0.01" required>
+        <select id="category" aria-label="Category">
+          <option value="Food">Food</option>
+          <option value="Transport">Transport</option>
+          <option value="Housing">Housing</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Health">Health</option>
+          <option value="Other">Other</option>
+        </select>
+        <input id="date" type="date" required>
+        <button type="submit" class="btn primary">Add expense</button>
+      </form>
+    </section>
+
+    <section class="list-section" aria-label="Expenses">
+      <div class="list-toolbar">
+        <h2>Transactions</h2>
+        <select id="filter" aria-label="Filter by category">
+          <option value="All">All categories</option>
+          <option value="Food">Food</option>
+          <option value="Transport">Transport</option>
+          <option value="Housing">Housing</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Health">Health</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <ul id="expense-list" class="expense-list"></ul>
+      <p id="empty-state" class="empty-state" hidden>No expenses yet — add your first one above.</p>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Demo project for the AI-Native SDLC agent org · <a href="https://github.com/bashebr/ai-native-sdlc" target="_blank" rel="noopener">github.com/bashebr/ai-native-sdlc</a></p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
