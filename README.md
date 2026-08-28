@@ -10,7 +10,7 @@ This repo is three things at once:
 - A **Claude Code skill** — the same folder, installable into `~/.claude/skills`.
 - A **Codex plugin** (`.codex-plugin/plugin.json` at the repo root) that bundles the skill, so teams can publish or fork it as their workflow baseline.
 
-**Learn more:** [Phase-by-phase playbook](skills/ai-native-sdlc/references/playbook.md) · [Staged adoption guide](skills/ai-native-sdlc/references/adoption.md) · [Workflow as a directed graph](skills/ai-native-sdlc/references/graph.md) · [Worked example](examples/expense-tracker/)
+**Learn more:** [Phase-by-phase playbook](skills/ai-native-sdlc/references/playbook.md) · [Staged adoption guide](skills/ai-native-sdlc/references/adoption.md) · [Workflow as a directed graph](skills/ai-native-sdlc/references/graph.md) · [Agent org](skills/ai-native-sdlc/references/org.md) · [Worked example](examples/expense-tracker/)
 
 ## What this is about
 
@@ -112,9 +112,37 @@ cp skills/ai-native-sdlc/assets/{intent.md,spec.md,plan.md,CLAUDE.md,REVIEW.md,b
 cp skills/ai-native-sdlc/assets/production-gate.sh hooks/
 ```
 
+## Autonomous agent org
+
+For teams that want the loop to run with less human steering, the skill can
+scaffold an **agent org** into any project — named roles with an org chart,
+peer review of every artifact, and multi-channel demand intake:
+
+```bash
+python3 skills/ai-native-sdlc/scripts/init_org.py my-project
+```
+
+The default org: **CEO (you, human)** → **CTO (agent)** → product manager,
+product engineering agent, engineers, and reviewer. Agents run the phases,
+review each other's work (reviewers accept only when idle), and report up the
+chain; the human CEO is involved at the critical points — intent ambiguity,
+unresolved spec/plan disagreement, PR merge, and release. Demand enters
+through GitHub issues (`scripts/sync_issues.py pull`), app feedback forms, and
+email, all landing as versioned records in `org/intake/` that the product
+engineering agent turns into tickets and intents.
+
+See `skills/ai-native-sdlc/references/org.md` for the full protocol.
+
 ## Examples
 
-The `examples/` folder contains a worked project — the expense-tracker idea from this README — showing what `intent.md`, `spec.md`, `plan.md`, `CLAUDE.md`, and the workflow graph look like when filled in. Use them as reference for tone and structure, then scaffold your own blanks with the script above.
+The `examples/` folder contains a worked project — the expense-tracker idea
+from this README. It shows what `intent.md`, `spec.md`, `plan.md`, `CLAUDE.md`,
+and the workflow graph look like when filled in, and it is also a real static
+app (`index.html`, `app.js`, `style.css`) with expenses persisted in the
+browser. Open `examples/expense-tracker/index.html` locally, or deploy it to
+Vercel (`vercel` from that directory) to see the product live. Use the example
+as reference for tone and structure, then scaffold your own blanks with the
+script above.
 
 ## Customizing for your organization
 
@@ -140,8 +168,9 @@ See `skills/ai-native-sdlc/references/adoption.md` for the staged rollout order.
 ├── SECURITY.md
 ├── examples/
 │   ├── README.md
-│   └── expense-tracker/           # worked example: intent, spec, plan, CLAUDE.md, graph
+│   └── expense-tracker/           # worked example + real static app (Vercel-ready)
 ├── tests/                         # gate, scaffold, band-detector, eval-runner tests
+├── docs/superpowers/specs/        # design docs (this feature's spec lives here)
 └── skills/
     └── ai-native-sdlc/
         ├── SKILL.md               # skill entrypoint (versioned; rule→enforcement matrix)
@@ -149,7 +178,8 @@ See `skills/ai-native-sdlc/references/adoption.md` for the staged rollout order.
         ├── references/
         │   ├── playbook.md        # phase-by-phase procedures
         │   ├── adoption.md        # staged rollout + org customization
-        │   └── graph.md           # the loop as a directed graph
+        │   ├── graph.md           # the loop as a directed graph
+        │   └── org.md             # autonomous agent org (roles, review, intake)
         ├── assets/                # templates copied into target projects
         │   ├── intent.md
         │   ├── spec.md
@@ -158,6 +188,7 @@ See `skills/ai-native-sdlc/references/adoption.md` for the staged rollout order.
         │   ├── REVIEW.md
         │   ├── bands.yaml
         │   ├── production-gate.sh
+        │   ├── org/               # agent org templates (chart, roles, protocol)
         │   ├── evals.example.md
         │   ├── evals.example.json
         │   ├── evals-README.md
@@ -172,6 +203,8 @@ See `skills/ai-native-sdlc/references/adoption.md` for the staged rollout order.
         │   └── managed-settings.example.json
         └── scripts/
             ├── init_workflow.py   # scaffolds the artifact skeleton
+            ├── init_org.py        # scaffolds the autonomous agent org
+            ├── sync_issues.py     # GitHub issue intake (pull/push)
             ├── quick_validate.py  # skill/plugin self-check
             ├── run_evals.py       # eval-suite runner (Phase 4)
             ├── detect_bands.py    # control-band detection (Phase 6)

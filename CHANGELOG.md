@@ -8,6 +8,16 @@ semver; keep `plugin.json` and the `version` field in SKILL.md in sync
 
 ### Added
 
+- Autonomous agent org: `scripts/init_org.py` scaffolds named roles (CEO-human,
+  CTO, product manager, product engineering agent, engineers, reviewer) with
+  an org chart, status tracking, peer review, escalation, and multi-channel
+  demand intake; templates in `assets/org/`, detail in `references/org.md`.
+- `scripts/sync_issues.py` — GitHub issue intake for the product engineering
+  agent: `pull` open issues into `org/intake/github/` (idempotent, state-tracked)
+  and `push` feature tickets.
+- Expense-tracker static demo app (`examples/expense-tracker/`): a working
+  HTML/CSS/vanilla-JS app with localStorage persistence, deployable to Vercel.
+- Design doc: `docs/superpowers/specs/2026-08-28-agent-org-design.md`.
 - `scripts/gate_ledger.py` — hash-chained, version-controlled approval ledger:
   every gate decision is a tamper-evident record (`record`/`list`/`verify`);
   `verify --require-committed` and `--graph … --require-gates` completeness
