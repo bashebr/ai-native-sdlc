@@ -39,7 +39,10 @@ PROMISED = [
     "references/playbook.md",
     "references/adoption.md",
     "references/graph.md",
+    "references/org.md",
     "scripts/init_workflow.py",
+    "scripts/init_org.py",
+    "scripts/sync_issues.py",
     "scripts/gate_ledger.py",
     "scripts/run_evals.py",
     "scripts/detect_bands.py",
@@ -63,6 +66,21 @@ PROMISED = [
     "assets/agent-evals.yml.example",
     "assets/managed-settings.example.json",
     "assets/.gitignore",
+    "assets/org/org-chart.yaml",
+    "assets/org/status.yaml",
+    "assets/org/protocol.md",
+    "assets/org/roles/ceo.md",
+    "assets/org/roles/cto.md",
+    "assets/org/roles/product-manager.md",
+    "assets/org/roles/product-engineer.md",
+    "assets/org/roles/engineer.md",
+    "assets/org/roles/reviewer.md",
+    "assets/org/intake/README.md",
+    "assets/org/intake/config.json",
+    "assets/org/intake/github/.gitkeep",
+    "assets/org/intake/forms/.gitkeep",
+    "assets/org/intake/email/.gitkeep",
+    "assets/org/reviews/README.md",
 ]
 
 failures: list[str] = []
@@ -174,7 +192,7 @@ def main() -> int:
         check((skill / rel).exists(), f"promised file exists: {rel}")
 
     # 5. YAML/JSON assets parse.
-    for path in sorted((skill / "assets").glob("*")):
+    for path in sorted((skill / "assets").rglob("*")):
         if path.suffix in (".yaml", ".yml"):
             check(yaml_ok(path), f"YAML parses: {path.name}")
         elif path.suffix == ".json":
@@ -207,8 +225,19 @@ def main() -> int:
         check((smoke / "workflow-graph.yaml").is_file(), "scaffold writes workflow-graph.yaml")
         check((smoke / "hooks" / "production-gate.sh").is_file(), "scaffold writes hooks/production-gate.sh")
 
-    # 9. run_evals / detect_bands / gate_ledger import cleanly.
-    for script in ("run_evals.py", "detect_bands.py", "gate_ledger.py"):
+    # 9. Org scaffold smoke test.
+    with tempfile.TemporaryDirectory() as td:
+        org = Path(td) / "org-smoke"
+        code, out = run(["python3", str(skill / "scripts" / "init_org.py"), str(org)])
+        check(code == 0, "init_org.py scaffold smoke test")
+        check((org / "org" / "org-chart.yaml").is_file(), "org scaffold writes org/org-chart.yaml")
+        check((org / "org" / "status.yaml").is_file(), "org scaffold writes org/status.yaml")
+        check((org / "org" / "roles" / "cto.md").is_file(), "org scaffold writes role cards")
+        check((org / "org" / "intake" / "README.md").is_file(), "org scaffold writes intake README")
+        check((org / "scripts" / "sync_issues.py").is_file(), "org scaffold writes scripts/sync_issues.py")
+
+    # 10. Python scripts compile cleanly.
+    for script in ("run_evals.py", "detect_bands.py", "gate_ledger.py", "init_org.py", "sync_issues.py"):
         code, _ = run(["python3", "-m", "py_compile", str(skill / "scripts" / script)])
         check(code == 0, f"py_compile: {script}")
 

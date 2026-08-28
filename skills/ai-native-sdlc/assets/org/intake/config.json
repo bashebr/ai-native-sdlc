@@ -1,0 +1,8 @@
+{
+  "github": {
+    "repos": [],
+    "labels": [],
+    "state_file": "org/intake/.state.json",
+    "output_dir": "org/intake/github"
+  }
+}

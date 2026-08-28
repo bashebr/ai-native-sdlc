@@ -1,0 +1,49 @@
+# Autonomous agent org — default role model.
+# CEO is the human owner; every agent reports up to the CTO, who reports to
+# the CEO. Edit roles/counts for your project. Keep this file committed:
+# it is the org contract agents read at session start.
+version: 1
+
+owner:
+  role: ceo
+  human: true
+
+agents:
+  ceo:
+    title: Chief Executive Officer
+    human: true
+    reports_to: null
+    authority: [pr_merge_approval, release_authorization, escalation_final]
+  cto:
+    title: Chief Technology Officer
+    reports_to: ceo
+    authority: [dispatch, review_routing, conflict_resolution]
+  product-manager:
+    title: Product Manager
+    reports_to: cto
+    authority: [intent_first_review]
+  product-engineer:
+    title: Product Engineering Agent
+    reports_to: cto
+    authority: [file_tickets, draft_intents]
+  engineer:
+    title: Software Engineer
+    reports_to: cto
+    count: 1
+    authority: [implement]
+  reviewer:
+    title: Reviewer
+    reports_to: cto
+    count: 1
+    authority: [peer_review]
+
+gates:
+  intent: product_manager_review; escalate to CEO on ambiguity
+  spec: peer_review; escalate to CEO after two unresolved rounds
+  plan: peer_review; escalate to CEO after two unresolved rounds
+  pr_merge: human (CEO)
+  release: human (CEO); production gate + gate ledger record
+
+escalation:
+  max_disagreement_rounds: 2
+  route: writer -> reviewer -> cto -> ceo

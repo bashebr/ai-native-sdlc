@@ -29,6 +29,7 @@ jobs:
         run: |
           bash tests/test_gate.sh
           bash tests/test_init.sh
+          bash tests/test_init_org.sh
 
       - name: Skill/plugin validation
         run: python3 skills/ai-native-sdlc/scripts/quick_validate.py skills/ai-native-sdlc

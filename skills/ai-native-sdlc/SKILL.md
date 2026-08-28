@@ -74,6 +74,17 @@ At a glance:
 
 The loop is a directed graph, not a linear pipeline: plays and artifacts are nodes, gates are the human approval points, and triggers are the edges that fire the next stage. Treating the workflow as a graph makes it automatable (accepted artifacts fire the next gate), parallelizable (independent branches run in separate worktrees), and auditable (node history is the record). The plays also form a separate adoption graph — start at the leaf plays and build outward. Read `references/graph.md` when designing or automating how phases trigger each other; the machine-readable form ships in `assets/workflow-graph.example.yaml`.
 
+## Autonomous agent org
+
+For teams that want the loop to run with less human steering, the skill can
+scaffold an **agent org**: named roles (CEO-human, CTO, product manager,
+product engineering agent, engineers, reviewer) with an org chart, a reporting
+protocol, peer review of every artifact, and multi-channel demand intake
+(GitHub issues, forms, email). Agents run the phases, review each other's work,
+and escalate to the human CEO only at the critical gates (intent ambiguity,
+unresolved disagreement, PR merge, release). Scaffold it with
+`scripts/init_org.py <project-dir>`; full detail in `references/org.md`.
+
 ## Templates and assets
 
 The scaffold script copies the core skeleton into a new project (`intent.md`,
@@ -100,6 +111,11 @@ forms only when you want them as starting points:
 - `assets/incident.md` — incident record template for Maintain (severity definitions, timeline, eval follow-up)
 - `assets/runbooks/rollback-deploy.md` + `assets/runbooks/README.md` — pre-approved action paths that `bands.yaml` 3σ routes may trigger
 - `assets/PULL_REQUEST_TEMPLATE.md` — change request mapped to REVIEW.md passes + evidence
+- `assets/org/org-chart.yaml` — agent org role model (roles, reports-to, authority, gates; copied by `scripts/init_org.py`)
+- `assets/org/status.yaml` — live agent states (busy/idle) + review queue
+- `assets/org/roles/*.md` — role cards (CEO, CTO, product manager, product engineering agent, engineer, reviewer)
+- `assets/org/protocol.md` — reporting, peer review, escalation, and gate rules for the org
+- `assets/org/intake/` + `assets/org/reviews/README.md` — demand intake (github/forms/email) and evidence-backed review record formats
 
 Organization-level examples to wire up during adoption:
 
@@ -110,10 +126,12 @@ Organization-level examples to wire up during adoption:
 ## Scripts
 
 - `scripts/init_workflow.py` — scaffold the artifact skeleton into a new project (`--dry-run`, `--framework`, `--git`)
+- `scripts/init_org.py` — scaffold the autonomous agent org (roles, protocol, intake; `--dry-run`, `--force`)
 - `scripts/quick_validate.py` — validate the skill/plugin bundle (self-check; CI runs it)
 - `scripts/run_evals.py` — run the eval suite locally or in CI (Phase 4), with `--min-pass-rate` gating
 - `scripts/detect_bands.py` — deterministic control-band detection (Phase 6 reference implementation: rolling window, Western Electric rules, drift rule)
 - `scripts/gate_ledger.py` — hash-chained approval ledger: every gate decision is a committed, tamper-evident record; the release gate verifies `RELEASE_APPROVAL=ledger:<id>` against it
+- `scripts/sync_issues.py` — GitHub issue intake for the product engineering agent (`pull` open issues into `org/intake/github/`, `push` a feature ticket)
 
 ## Self-test (after installing)
 
