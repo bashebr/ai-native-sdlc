@@ -139,10 +139,11 @@ The `examples/` folder contains a worked project — the expense-tracker idea
 from this README. It shows what `intent.md`, `spec.md`, `plan.md`, `CLAUDE.md`,
 and the workflow graph look like when filled in, and it is also a real static
 app (`index.html`, `app.js`, `style.css`) with expenses persisted in the
-browser. Open `examples/expense-tracker/index.html` locally, or deploy it to
-Vercel (`vercel` from that directory) to see the product live. Use the example
-as reference for tone and structure, then scaffold your own blanks with the
-script above.
+browser. **Live demo:** [bashebr.github.io/ai-native-sdlc](https://bashebr.github.io/ai-native-sdlc/)
+— hosted on GitHub Pages from the repo's `gh-pages` branch. The folder also
+opens locally (`index.html`) and is Vercel-ready via `vercel.json`. Use the
+example as reference for tone and structure, then scaffold your own blanks
+with the script above.
 
 ## Customizing for your organization
 

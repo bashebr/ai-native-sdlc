@@ -14,8 +14,10 @@ and now a real, working static app:
 - `workflow-graph.yaml` — the same project's state on the loop graph
 - `index.html` / `app.js` / `style.css` — the working static app (expenses
   persist in the browser via localStorage)
-- `vercel.json` — static deployment config; deploy with `vercel` from this
-  directory to get a live URL
+- **Live demo:** [bashebr.github.io/ai-native-sdlc](https://bashebr.github.io/ai-native-sdlc/)
+  — served from the repo's `gh-pages` branch
+- `vercel.json` — static deployment config; `vercel` from this directory also
+  works if you want a Vercel URL instead
 
 To produce the blank forms for your own project:
 
