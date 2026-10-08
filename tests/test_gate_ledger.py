@@ -116,6 +116,26 @@ class RecordAndChainTests(unittest.TestCase):
         self.assertEqual(gate_ledger.cmd_verify(gate_ledger.argparse.Namespace(
             ledger=ledger, record="r-1", require_committed=False, graph=graph, require_gates=True)), 1)
 
+    def test_require_gate_rejects_cross_gate_approval(self):
+        td, ledger = make_ledger()
+        self.addCleanup(lambda: os.system(f"rm -rf {td}"))
+        common = dict(ledger=ledger, decision="approved", artifact="x", commit=None,
+                      approver="Ada", evidence="e", expires_at=None)
+        gate_ledger.cmd_record(gate_ledger.argparse.Namespace(**common, gate="release_authorization", id="rel-1"))
+        gate_ledger.cmd_record(gate_ledger.argparse.Namespace(**common, gate="product_owner_accept", id="int-1"))
+        # Matching gate verifies.
+        self.assertEqual(gate_ledger.cmd_verify(gate_ledger.argparse.Namespace(
+            ledger=ledger, record="rel-1", require_gate="release_authorization",
+            require_committed=False, graph=None, require_gates=False)), 0)
+        # A valid record for another gate must not satisfy the release gate.
+        self.assertEqual(gate_ledger.cmd_verify(gate_ledger.argparse.Namespace(
+            ledger=ledger, record="int-1", require_gate="release_authorization",
+            require_committed=False, graph=None, require_gates=False)), 1)
+        # Omitting --require-gate keeps the previous behavior (backward compatible).
+        self.assertEqual(gate_ledger.cmd_verify(gate_ledger.argparse.Namespace(
+            ledger=ledger, record="int-1", require_committed=False,
+            graph=None, require_gates=False)), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

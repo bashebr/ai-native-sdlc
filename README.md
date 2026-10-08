@@ -153,7 +153,7 @@ with the script above.
 ## Customizing for your organization
 
 - **Standards as skills** — encode brand, security, UX, and compliance policies as skills so Design and Build apply them consistently.
-- **Hooks as red lines** — protected paths, secrets, and the release gate go in deterministic hooks, not prose. `production-gate.sh` blocks deploys without human authorization; `hook-settings.example.json` shows the wiring; `managed-settings.example.json` is the regulated-enterprise starting point.
+- **Hooks as red lines** — protected paths, secrets, and the release gate go in deterministic hooks, not prose. `production-gate.sh` blocks deploys without human authorization, and `scan_secrets.py` (with the `pre-commit.example` hook) blocks credentials from entering a commit; `hook-settings.example.json` shows the release-gate wiring; `managed-settings.example.json` is the regulated-enterprise starting point.
 - **Evals** — collect 20–50 real tasks with expected outcomes; run them in CI on every config change and after every incident (`agent-evals.yml.example`).
 - **Review culture** — `REVIEW.md` sets the passes (bugs, security, compliance), the evidence requirement, and the 5-nit cap.
 - **CI/CD and autonomy tiers** — agent triage runs non-interactively in the pipeline; dev is open, production needs a release manager; rollbacks are rehearsed.
@@ -193,6 +193,8 @@ See `skills/ai-native-sdlc/references/adoption.md` for the staged rollout order.
         │   ├── REVIEW.md
         │   ├── bands.yaml
         │   ├── production-gate.sh
+        │   ├── pre-commit.example # secret-scan pre-commit hook
+        │   ├── secrets-ignore.example
         │   ├── org/               # agent org templates (chart, roles, protocol)
         │   ├── evals.example.md
         │   ├── evals.example.json
@@ -216,6 +218,7 @@ See `skills/ai-native-sdlc/references/adoption.md` for the staged rollout order.
             ├── gate_ledger.py     # hash-chained approval ledger (all gates)
             ├── workflow_state.py  # graph state runtime (status/advance/check)
             ├── check_plan_sync.py # deterministic plan-sync enforcement
+            ├── scan_secrets.py    # deterministic secret scanner (build guardrail)
             ├── org_status.py      # agent busy/idle + review queue
             └── intake.py          # form/email demand intake
 ```
@@ -236,6 +239,7 @@ and small improvements, fork, branch, and open a pull request.
    python3 skills/ai-native-sdlc/scripts/quick_validate.py skills/ai-native-sdlc
    bash tests/test_gate.sh
    bash tests/test_init.sh
+   python3 skills/ai-native-sdlc/scripts/scan_secrets.py --path skills
    python3 -m unittest discover -s tests -v
    ```
 

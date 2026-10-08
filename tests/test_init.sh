@@ -17,12 +17,13 @@ python3 "$SCRIPT" "$tmp/dry" --name "Dry Run" --dry-run >/dev/null 2>&1 || { ech
 
 # codex scaffold
 python3 "$SCRIPT" "$tmp/proj" --name "Smoke Test" --framework codex >/dev/null 2>&1 || { echo "FAIL: scaffold exited non-zero"; fail=1; }
-for f in intent/intent.md AGENTS.md REVIEW.md bands.yaml workflow-graph.yaml .gitignore hooks/production-gate.sh evals/example.md evals/README.md scripts/gate_ledger.py scripts/run_evals.py scripts/detect_bands.py scripts/workflow_state.py scripts/check_plan_sync.py gates/README.md; do
+for f in intent/intent.md AGENTS.md REVIEW.md bands.yaml workflow-graph.yaml .gitignore hooks/production-gate.sh hooks/pre-commit.example evals/example.md evals/README.md scripts/gate_ledger.py scripts/run_evals.py scripts/detect_bands.py scripts/workflow_state.py scripts/check_plan_sync.py scripts/scan_secrets.py gates/README.md .secretsignore; do
   [[ -e "$tmp/proj/$f" ]] || { echo "FAIL: missing $f"; fail=1; }
 done
 python3 -m py_compile "$tmp/proj/scripts/gate_ledger.py" || { echo "FAIL: scaffolded gate_ledger.py does not compile"; fail=1; }
 python3 -m py_compile "$tmp/proj/scripts/workflow_state.py" || { echo "FAIL: scaffolded workflow_state.py does not compile"; fail=1; }
 python3 -m py_compile "$tmp/proj/scripts/check_plan_sync.py" || { echo "FAIL: scaffolded check_plan_sync.py does not compile"; fail=1; }
+python3 -m py_compile "$tmp/proj/scripts/scan_secrets.py" || { echo "FAIL: scaffolded scan_secrets.py does not compile"; fail=1; }
 grep -q '# Smoke Test' "$tmp/proj/intent/intent.md" || { echo "FAIL: --name not interpolated"; fail=1; }
 grep -q 'AGENTS.md' "$tmp/proj/AGENTS.md" || { echo "FAIL: codex variant header wrong"; fail=1; }
 [[ -f "$tmp/proj/CLAUDE.md" ]] && { echo "FAIL: codex scaffold also wrote CLAUDE.md"; fail=1; }

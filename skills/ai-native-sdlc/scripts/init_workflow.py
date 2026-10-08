@@ -10,16 +10,19 @@ Creates:
     CLAUDE.md / AGENTS.md       repository-memory starter (--framework claude|codex)
     REVIEW.md                   review standards
     hooks/production-gate.sh    release authorization hook (executable)
+    hooks/pre-commit.example    secret-scan pre-commit hook (copy to .git/hooks/)
     scripts/gate_ledger.py      approval-record ledger (hash-chained)
     scripts/run_evals.py        eval-suite runner (Phase 4)
     scripts/detect_bands.py     control-band detection (Phase 6)
     scripts/workflow_state.py   workflow graph state runtime (status/advance/check)
     scripts/check_plan_sync.py  deterministic plan-sync enforcement
+    scripts/scan_secrets.py     deterministic secret scanner (build guardrail)
     bands.yaml                  monitoring control bands
     workflow-graph.yaml         project state on the loop graph
     evals/example.md            eval case example (markdown)
     evals/README.md             how to add evals (JSON format)
     gates/README.md             gate ledger usage
+    .secretsignore              secret-scanner allowlist (starts empty)
     .gitignore                  basic ignore rules
 
 Existing files are skipped unless --force is passed. --dry-run prints the
@@ -42,16 +45,19 @@ FILES = {
     "CLAUDE.md": "assets/CLAUDE.md",
     "REVIEW.md": "assets/REVIEW.md",
     "hooks/production-gate.sh": "assets/production-gate.sh",
+    "hooks/pre-commit.example": "assets/pre-commit.example",
     "scripts/gate_ledger.py": "scripts/gate_ledger.py",
     "scripts/run_evals.py": "scripts/run_evals.py",
     "scripts/detect_bands.py": "scripts/detect_bands.py",
     "scripts/workflow_state.py": "scripts/workflow_state.py",
     "scripts/check_plan_sync.py": "scripts/check_plan_sync.py",
+    "scripts/scan_secrets.py": "scripts/scan_secrets.py",
     "bands.yaml": "assets/bands.yaml",
     "workflow-graph.yaml": "assets/workflow-graph.yaml",
     "evals/example.md": "assets/evals.example.md",
     "evals/README.md": "assets/evals-README.md",
     "gates/README.md": "assets/gates-README.md",
+    ".secretsignore": "assets/secrets-ignore.example",
     ".gitignore": "assets/.gitignore",
 }
 
