@@ -10,6 +10,7 @@ Keep this file under one page. Add a rule when the same mistake happens twice.
 - Test: `make test` (all green; never skip or delete a failing test)
 - Lint: `make lint` (zero warnings)
 - Itest: `make itest` (integration, needs docker)
+- Secrets: `python3 scripts/scan_secrets.py --staged` (must report 0 findings)
 
 ## Verifying your work
 

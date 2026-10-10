@@ -59,6 +59,30 @@ semver; keep `plugin.json` and the `version` field in SKILL.md in sync
   unit tests, integration tests, skill/plugin validation).
 - `SECURITY.md`; `version` field in SKILL.md frontmatter; compliance matrix in
   SKILL.md mapping each hard rule to its enforcement layer.
+- `scripts/scan_secrets.py` — deterministic, network-free secret/credential
+  scanner (paths, staged diff, or PR diff) with high-signal provider patterns,
+  inline suppression (`# nosecret`), a `.secretsignore` allowlist, optional
+  entropy checks, and redacted output. Shipped with `assets/pre-commit.example`
+  (git pre-commit hook) and `assets/secrets-ignore.example`; scaffolded by
+  `init_workflow.py`; dogfooded in `.github/workflows/self-check.yml`.
+
+### Security
+
+- `assets/production-gate.sh` — fixed two release-gate bypasses. The
+  read-only allowlist was evaluated first, as an unanchored substring over the
+  whole command string, so a production deploy was allowed whenever the
+  command contained a read-only word
+  (`kubectl apply -f production.yaml && echo done`,
+  `helm upgrade prod-app 2>&1 | grep -v skip`) or the substring `cat`
+  (`production/catalogue.yaml`). The gate now splits the command into shell
+  segments, judges each on its own, and anchors read-only tokens to command
+  position; a production deploy in any segment is gated.
+- `scripts/gate_ledger.py` + `assets/production-gate.sh` — ledger approvals are
+  now gate-scoped: `verify` gained `--require-gate`, and the release hook
+  requires a `release_authorization` record (override with `RELEASE_GATE`).
+  Previously any approved record (e.g. an intent acceptance) authorized a
+  production deploy. Regression coverage added to `tests/test_gate.sh` and
+  `tests/test_gate_ledger.py`.
 
 ### Changed
 

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Pre-commit hook: block staged secrets before they reach a commit.
+#
+# Install: copy to .git/hooks/pre-commit and chmod +x, or wire it through your
+# hook manager. It runs the deterministic scanner over the staged diff only.
+set -uo pipefail
+
+root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+scanner="$root/scripts/scan_secrets.py"
+
+if [[ ! -f "$scanner" ]]; then
+  echo "pre-commit: $scanner not found; skipping secret scan" >&2
+  exit 0
+fi
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "pre-commit: python3 required for the secret scan" >&2
+  exit 1
+fi
+
+if ! python3 "$scanner" --repo "$root" --staged; then
+  echo "BLOCK: possible secret in staged changes." >&2
+  echo "Remove it, add an inline '# nosecret' comment, or list the path in .secretsignore." >&2
+  exit 1
+fi

@@ -211,6 +211,7 @@ def _verified_record_id(ledger_path: Path, record_id: str, require_committed: bo
     args = argparse.Namespace(
         ledger=str(ledger_path),
         record=record_id,
+        require_gate=None,
         require_committed=require_committed,
         graph=None,
         require_gates=False,

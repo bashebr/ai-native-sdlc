@@ -33,3 +33,6 @@ jobs:
 
       - name: Skill/plugin validation
         run: python3 skills/ai-native-sdlc/scripts/quick_validate.py skills/ai-native-sdlc
+
+      - name: Secret scan (dogfood)
+        run: python3 skills/ai-native-sdlc/scripts/scan_secrets.py --path skills

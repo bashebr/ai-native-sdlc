@@ -49,6 +49,7 @@ PROMISED = [
     "scripts/detect_bands.py",
     "scripts/workflow_state.py",
     "scripts/check_plan_sync.py",
+    "scripts/scan_secrets.py",
     "scripts/org_status.py",
     "scripts/intake.py",
     "assets/intent.md",
@@ -62,6 +63,8 @@ PROMISED = [
     "assets/evals.example.json",
     "assets/evals-README.md",
     "assets/gates-README.md",
+    "assets/secrets-ignore.example",
+    "assets/pre-commit.example",
     "assets/workflow-graph.example.yaml",
     "assets/workflow-graph.yaml",
     "assets/incident.md",
@@ -242,6 +245,8 @@ def main() -> int:
         check((smoke / "hooks" / "production-gate.sh").is_file(), "scaffold writes hooks/production-gate.sh")
         check((smoke / "scripts" / "workflow_state.py").is_file(), "scaffold writes workflow_state.py")
         check((smoke / "scripts" / "check_plan_sync.py").is_file(), "scaffold writes check_plan_sync.py")
+        check((smoke / "scripts" / "scan_secrets.py").is_file(), "scaffold writes scan_secrets.py")
+        check((smoke / ".secretsignore").is_file(), "scaffold writes .secretsignore")
 
     # 9. Org scaffold smoke test.
     with tempfile.TemporaryDirectory() as td:
@@ -268,6 +273,7 @@ def main() -> int:
             "sync_issues.py",
             "workflow_state.py",
             "check_plan_sync.py",
+            "scan_secrets.py",
             "org_status.py",
             "intake.py",
             "quick_validate.py",

@@ -90,8 +90,9 @@ unresolved disagreement, PR merge, release). Scaffold it with
 The scaffold script copies the core skeleton into a new project (`intent.md`,
 `CLAUDE.md`/`AGENTS.md`, `REVIEW.md`, `bands.yaml`, `production-gate.sh`,
 `workflow-graph.yaml`, `.gitignore`, `evals/example.md`, `evals/README.md`,
-`gates/README.md`, and the tool scripts `gate_ledger.py`/`run_evals.py`/
-`detect_bands.py`/`workflow_state.py`/`check_plan_sync.py`); copy these manually when extending an existing repo. `spec.md` and `plan.md`
+`gates/README.md`, `.secretsignore`, `hooks/pre-commit.example`, and the tool
+scripts `gate_ledger.py`/`run_evals.py`/`detect_bands.py`/`workflow_state.py`/
+`check_plan_sync.py`/`scan_secrets.py`); copy these manually when extending an existing repo. `spec.md` and `plan.md`
 are produced by the workflow itself during Design and Build — copy the blank
 forms only when you want them as starting points:
 
@@ -133,6 +134,7 @@ Organization-level examples to wire up during adoption:
 - `scripts/gate_ledger.py` — hash-chained approval ledger: every gate decision is a committed, tamper-evident record; the release gate verifies `RELEASE_APPROVAL=ledger:<id>` against it
 - `scripts/workflow_state.py` — deterministic workflow state runtime (`status`/`advance`/`check`): graph nodes advance only through matching, chain-verified ledger records
 - `scripts/check_plan_sync.py` — deterministic plan-sync enforcement: implementation changes require an approved plan.md manifest in PR/CI or pre-commit mode
+- `scripts/scan_secrets.py` — deterministic secret scanner for the build-phase red line: scans paths, the staged diff, or a PR diff for high-signal credentials, always redacts, exits non-zero on findings
 - `scripts/sync_issues.py` — GitHub issue intake for the product engineering agent (`pull` open issues into `org/intake/github/`, `push` a feature ticket)
 - `scripts/org_status.py` — agent busy/idle and review-queue management (`status`, `agent`, `review`) against `org/status.yaml`
 - `scripts/intake.py` — form/email demand intake into `org/intake/` (`add`, `list`)

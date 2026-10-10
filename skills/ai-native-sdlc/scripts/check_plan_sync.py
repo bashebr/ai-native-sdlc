@@ -219,6 +219,7 @@ def _verify_ledger_record(repo: Path, ledger_path: Path, record: dict) -> bool:
     args = argparse.Namespace(
         ledger=str(ledger_path),
         record=record.get("id"),
+        require_gate=None,
         require_committed=False,
         graph=None,
         require_gates=False,

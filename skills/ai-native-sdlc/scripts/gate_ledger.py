@@ -283,6 +283,14 @@ def cmd_verify(args: argparse.Namespace) -> int:
     if target is None:
         print(f"error: no record with id {args.record!r}", file=sys.stderr)
         return 1
+    require_gate = getattr(args, "require_gate", None)
+    if require_gate and target.get("gate") != require_gate:
+        print(
+            f"error: record {args.record} is for gate {target.get('gate')!r}, not "
+            f"{require_gate!r} (approvals do not cross gates)",
+            file=sys.stderr,
+        )
+        return 1
     if target.get("decision") != "approved":
         print(f"error: record {args.record} decision is {target.get('decision')!r}, not 'approved'", file=sys.stderr)
         return 1
@@ -337,6 +345,8 @@ def main(argv: list[str] | None = None) -> int:
 
     p_verify = sub.add_parser("verify", help="verify chain integrity and a specific record")
     p_verify.add_argument("--record", required=True, help="record id to verify")
+    p_verify.add_argument("--require-gate", default=None,
+                          help="fail unless the record's gate equals this value (no cross-gate approvals)")
     p_verify.add_argument("--require-committed", action="store_true",
                           help="fail unless the ledger is committed with no uncommitted changes")
     p_verify.add_argument("--graph", default=None, help="workflow-graph.yaml for the --require-gates check")
