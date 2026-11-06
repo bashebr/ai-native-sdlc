@@ -88,15 +88,22 @@ fi
 segments="$(printf '%s' "$cmd" | awk '{ gsub(/&&|\|\||[;&|]/, "\n"); print }')"
 
 production_deploy=""
+production_context=0
 while IFS= read -r segment; do
   [[ -z "${segment//[[:space:]]/}" ]] && continue
-  # Read-only segments never trip the gate.
+  # Read-only segments never trip the gate and never establish a context.
   if printf '%s' "$segment" | grep -Eq "$READ_ONLY_PATTERNS"; then
     continue
   fi
+  # A context switch (`kubectl config use-context production`,
+  # `export KUBECONFIG=.../prod`, `aws configure set profile prod`) applies to
+  # the segments that follow it in the same command.
+  if printf '%s' "$segment" | grep -Eq "$PROD_CONTEXT_PATTERNS"; then
+    production_context=1
+  fi
   # A deploy action in a production context is a gated action.
   if printf '%s' "$segment" | grep -Eq "$DEPLOY_PATTERNS" \
-     && printf '%s' "$segment" | grep -Eq "$PROD_CONTEXT_PATTERNS"; then
+     && [[ "$production_context" -eq 1 ]]; then
     production_deploy="$segment"
     break
   fi
