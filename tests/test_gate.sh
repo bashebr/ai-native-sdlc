@@ -46,6 +46,8 @@ check "multi-line deploy then echo" 2 -- "$(printf 'kubectl apply -f production.
 check "context switch then kubectl apply" 2 -- "kubectl config use-context production && kubectl apply -f deploy.yaml"
 check "context switch then helm upgrade (semicolon)" 2 -- "kubectl config use-context production; helm upgrade app"
 check "export prod KUBECONFIG then terraform apply" 2 -- "export KUBECONFIG=/etc/kube/prod && terraform apply"
+check "switch to staging then back to prod then deploy" 2 -- "kubectl config use-context staging && kubectl config use-context production && kubectl apply -f deploy.yaml"
+check "deploy with explicit production --context" 2 -- "kubectl apply --context=production -f deploy.yaml"
 
 # --- must ALLOW (exit 0): not deploys, or read-only ---
 check "cat docs/production-deploy.md (read, was a false positive)" 0 -- "cat docs/production-deploy.md"
@@ -56,6 +58,9 @@ check "terraform plan -target=module.production (read-only terraform)" 0 -- "ter
 check "helm list -n production (read-only helm)" 0 -- "helm list -n production"
 check "grep -r deploy docs/production/" 0 -- "grep -r deploy docs/production/"
 check "context switch alone is not a deploy" 0 -- "kubectl config use-context production"
+check "switch to staging clears production context" 0 -- "kubectl config use-context production && kubectl config use-context staging && kubectl apply -f deploy.yaml"
+check "export staging KUBECONFIG clears production context" 0 -- "export KUBECONFIG=/etc/kube/prod && export KUBECONFIG=/etc/kube/staging && terraform apply"
+check "explicit staging --context overrides earlier production switch" 0 -- "kubectl config use-context production && kubectl apply --context=staging -f deploy.yaml"
 check "unrelated command" 0 -- "pip install requests"
 
 # --- approval present: production deploy allowed ---
