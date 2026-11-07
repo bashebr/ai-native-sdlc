@@ -76,7 +76,11 @@ semver; keep `plugin.json` and the `version` field in SKILL.md in sync
   `helm upgrade prod-app 2>&1 | grep -v skip`) or the substring `cat`
   (`production/catalogue.yaml`). The gate now splits the command into shell
   segments, judges each on its own, and anchors read-only tokens to command
-  position; a production deploy in any segment is gated.
+  position; a production deploy in any segment is gated. A production context
+  established by an earlier segment (for example
+  `kubectl config use-context production && kubectl apply -f deploy.yaml`)
+  carries forward to later segments and is cleared when a later segment
+  switches to a non-production context.
 - `scripts/gate_ledger.py` + `assets/production-gate.sh` — ledger approvals are
   now gate-scoped: `verify` gained `--require-gate`, and the release hook
   requires a `release_authorization` record (override with `RELEASE_GATE`).
