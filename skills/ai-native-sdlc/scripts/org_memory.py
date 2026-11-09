@@ -8,9 +8,12 @@ event must cite a source. digest rewrites only the machine-owned block.
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
+import os
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -34,6 +37,7 @@ REQUIRED_HEADINGS = (
     "## Constraints",
     "## Artifacts",
     "## Next action",
+    "## Last digest source",
 )
 
 
@@ -57,8 +61,12 @@ def load_events(root: Path) -> list[dict]:
     path = _events_path(root)
     if not path.is_file():
         return []
+    return _parse_events(path.read_text(encoding="utf-8"), path)
+
+
+def _parse_events(text: str, path: Path) -> list[dict]:
     events: list[dict] = []
-    for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+    for lineno, line in enumerate(text.splitlines(), 1):
         if not line.strip():
             continue
         try:
@@ -95,20 +103,31 @@ def add(
         raise ValueError("actor and text are required")
     if not source.strip():
         raise ValueError("source is required")
-    events = load_events(root)
-    event = {
-        "id": _next_event_id(events),
-        "ts": common.now_iso(),
-        "kind": kind,
-        "actor": actor,
-        "text": text.strip(),
-        "source": source.strip(),
-        "tags": tags,
-    }
-    events.append(event)
-    payload = "\n".join(json.dumps(item, sort_keys=True) for item in events) + "\n"
-    common.atomic_write(_events_path(root), payload)
-    return event
+    path = _events_path(root)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a+", encoding="utf-8") as ledger:
+        fcntl.flock(ledger.fileno(), fcntl.LOCK_EX)
+        try:
+            ledger.seek(0)
+            existing = ledger.read()
+            events = _parse_events(existing, path)
+            event = {
+                "id": _next_event_id(events),
+                "ts": common.now_iso(),
+                "kind": kind,
+                "actor": actor,
+                "text": text.strip(),
+                "source": source.strip(),
+                "tags": tags,
+            }
+            if existing and not existing.endswith("\n"):
+                ledger.write("\n")
+            ledger.write(json.dumps(event, sort_keys=True) + "\n")
+            ledger.flush()
+            os.fsync(ledger.fileno())
+            return event
+        finally:
+            fcntl.flock(ledger.fileno(), fcntl.LOCK_UN)
 
 
 def _load_state(root: Path) -> dict:
@@ -204,6 +223,14 @@ def _machine_block(root: Path) -> str:
     lines += ["## Next action", ""]
     lines.append(str(state.get("last_action") or "(run org_loop.py next)"))
     lines.append("")
+
+    lines += ["## Last digest source", ""]
+    if events:
+        last = events[-1]
+        lines.append(f"- {last.get('id')} from {last.get('source')}")
+    else:
+        lines.append("(no recorded events)")
+    lines.append("")
     lines += [END]
     return "\n".join(lines)
 
@@ -271,6 +298,17 @@ def check(root: Path) -> list[str]:
             violations.append(f"{event_id}: missing source")
         if not event.get("actor") or not event.get("text"):
             violations.append(f"{event_id}: missing actor or text")
+        timestamp = event.get("ts")
+        valid_timestamp = isinstance(timestamp, str) and re.fullmatch(
+            r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", timestamp
+        )
+        if valid_timestamp:
+            try:
+                datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ")
+            except ValueError:
+                valid_timestamp = False
+        if not valid_timestamp:
+            violations.append(f"{event_id}: missing or invalid timestamp")
     return violations
 
 
