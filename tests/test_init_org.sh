@@ -50,6 +50,9 @@ grep -q 'orchestrator' "$tmp/proj/org/org-chart.yaml" || { echo "FAIL: orchestra
 grep -q 'security-researcher' "$tmp/proj/org/org-chart.yaml" || { echo "FAIL: security role missing"; fail=1; }
 grep -q 'memory-keeper' "$tmp/proj/org/status.yaml" || { echo "FAIL: memory keeper missing"; fail=1; }
 grep -q 'senior-developer' "$tmp/proj/org/roles/senior-developer.md" || { echo "FAIL: developer card wrong"; fail=1; }
+(cd "$tmp/proj" && python3 scripts/org_message.py check >/dev/null) || { echo "FAIL: scaffolded message check failed"; fail=1; }
+(cd "$tmp/proj" && python3 scripts/org_memory.py check >/dev/null) || { echo "FAIL: scaffolded memory check failed"; fail=1; }
+(cd "$tmp/proj" && python3 scripts/org_loop.py check >/dev/null) || { echo "FAIL: scaffolded loop check failed"; fail=1; }
 
 # existing files are skipped; --force overwrites
 echo "sentinel" > "$tmp/proj/org/status.yaml"

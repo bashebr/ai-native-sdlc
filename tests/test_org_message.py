@@ -130,6 +130,15 @@ class MessageTests(unittest.TestCase):
         self.assertEqual(res.returncode, 1, res.stderr + res.stdout)
         self.assertIn("malformed frontmatter", res.stdout)
 
+    def test_check_ignores_message_bus_readme(self):
+        readme = self.tmp / "org" / "messages" / "README.md"
+        readme.write_text("# Agent messages\n\nHuman documentation.\n", encoding="utf-8")
+
+        res = self.run_cli("check")
+
+        self.assertEqual(res.returncode, 0, res.stderr + res.stdout)
+        self.assertIn("0 violation", res.stdout)
+
     def test_create_message_never_publishes_partial_file(self):
         path = self.tmp / "org" / "messages" / "senior-developer-0001.md"
         with mock.patch.object(

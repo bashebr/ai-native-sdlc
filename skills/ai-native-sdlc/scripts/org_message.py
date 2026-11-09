@@ -70,6 +70,8 @@ def _path(root: Path, message_id: str) -> Path:
 def load_messages(root: Path) -> list[dict]:
     out: list[dict] = []
     for path in sorted(_messages_dir(root).glob("*.md")):
+        if path.name == "README.md":
+            continue
         text = path.read_text(encoding="utf-8")
         fields, body = common.read_frontmatter(text)
         fields["body"] = body
