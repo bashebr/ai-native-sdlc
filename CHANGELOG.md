@@ -8,6 +8,18 @@ semver; keep `plugin.json` and the `version` field in SKILL.md in sync
 
 ### Added
 
+- Orchestrator-led agent org with product manager, architect, senior developer,
+  security researcher, reviewer, and memory keeper; the optional product
+  engineering agent is disabled by default.
+- Versioned agent message bus (`scripts/org_message.py`) with typed questions,
+  decisions, findings, replies, inbox, and validation.
+- Deterministic shared memory (`scripts/org_memory.py`) with a compact context
+  digest, sourced events, timestamp validation, and concurrent append safety.
+- Bounded deterministic work loop (`scripts/org_loop.py`) with six-turn and
+  two-no-progress safety caps, replay validation, consultation escalation, and
+  explicit stop reasons.
+- `assets/org-loop.yml.example` GitHub Actions workflow for one-turn dispatch
+  with concurrency, least privilege, and human gates preserved.
 - Deterministic workflow state runtime (`scripts/workflow_state.py`): `status`
   reports pipeline state and drift warnings, `advance` closes a graph node only
   through a matching chain-verified ledger record, and `check` validates graph
@@ -86,6 +98,9 @@ semver; keep `plugin.json` and the `version` field in SKILL.md in sync
 
 ### Changed
 
+- The default org replaces CTO with orchestrator and engineer with senior
+  developer; `org_status.py` honors `enabled: false` and the chart's
+  escalation owner.
 - `assets/plan.md` — "Files that change" is now a bullet list of exact paths or
   globs so `check_plan_sync.py` can treat the plan as a machine-readable
   manifest.

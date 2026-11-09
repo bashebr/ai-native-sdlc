@@ -99,6 +99,7 @@ PROMISED = [
     "assets/org/loop/config.yaml",
     "assets/org/loop/state.yaml",
     "assets/org/loop/history.jsonl",
+    "assets/org-loop.yml.example",
     "assets/org/intake/README.md",
     "assets/org/intake/config.json",
     "assets/org/intake/github/.gitkeep",

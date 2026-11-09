@@ -43,6 +43,9 @@ grep -q 'Chief Executive Officer' "$tmp/proj/org/roles/ceo.md" || { echo "FAIL: 
 grep -q 'peer_review' "$tmp/proj/org/org-chart.yaml" || { echo "FAIL: org-chart reviewer authority missing"; fail=1; }
 grep -q 'review_queue' "$tmp/proj/org/status.yaml" || { echo "FAIL: status.yaml review queue missing"; fail=1; }
 grep -q 'pr_merge' "$tmp/proj/org/protocol.md" || { echo "FAIL: protocol gates missing"; fail=1; }
+grep -q 'max_turns: 6' "$tmp/proj/org/loop/config.yaml" || { echo "FAIL: loop budget missing"; fail=1; }
+grep -q 'memory-keeper' "$tmp/proj/org/roles/memory-keeper.md" || { echo "FAIL: memory role missing"; fail=1; }
+grep -q 'security-researcher' "$tmp/proj/org/roles/security-researcher.md" || { echo "FAIL: security role missing"; fail=1; }
 grep -q 'orchestrator' "$tmp/proj/org/org-chart.yaml" || { echo "FAIL: orchestrator missing"; fail=1; }
 grep -q 'security-researcher' "$tmp/proj/org/org-chart.yaml" || { echo "FAIL: security role missing"; fail=1; }
 grep -q 'memory-keeper' "$tmp/proj/org/status.yaml" || { echo "FAIL: memory keeper missing"; fail=1; }
