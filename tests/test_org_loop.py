@@ -541,6 +541,36 @@ review_queue:
         self.assertEqual(res.returncode, 1)
         self.assertIn("turn", (res.stdout + res.stderr).lower())
 
+    def test_check_detects_tampered_no_progress(self):
+        res = self.advance(
+            "product-manager", "review_intent", "no_progress"
+        )
+        self.assertEqual(res.returncode, 0, res.stderr + res.stdout)
+        state_path = self.tmp / "org" / "loop" / "state.yaml"
+        text = state_path.read_text(encoding="utf-8").replace(
+            "no_progress: 1", "no_progress: 0"
+        )
+        state_path.write_text(text, encoding="utf-8")
+        res = self.run_cli("check")
+        self.assertEqual(res.returncode, 1)
+        self.assertIn("no_progress", res.stdout)
+
+    def test_check_detects_tampered_input_hash(self):
+        res = self.advance("product-manager", "review_intent")
+        self.assertEqual(res.returncode, 0, res.stderr + res.stdout)
+        state_path = self.tmp / "org" / "loop" / "state.yaml"
+        text = state_path.read_text(encoding="utf-8")
+        lines = [
+            "last_input_hash: deadbeef"
+            if line.startswith("last_input_hash: ")
+            else line
+            for line in text.splitlines()
+        ]
+        state_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        res = self.run_cli("check")
+        self.assertEqual(res.returncode, 1)
+        self.assertIn("last_input_hash", res.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

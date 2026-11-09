@@ -632,6 +632,30 @@ def check(root: Path) -> list[str]:
     ]
     if len(message_ids) != len(set(message_ids)):
         violations.append("a message was recorded as answered more than once")
+    replayed_no_progress = 0
+    previous_hash = None
+    for record in history:
+        current_hash = record.get("input_hash")
+        previous_no_progress = replayed_no_progress
+        if current_hash == previous_hash:
+            replayed_no_progress = previous_no_progress + 1
+        else:
+            replayed_no_progress = 0
+        if record.get("result") == "no_progress":
+            replayed_no_progress = max(
+                replayed_no_progress, previous_no_progress + 1
+            )
+        previous_hash = current_hash
+    if state.get("no_progress") != replayed_no_progress:
+        violations.append(
+            f"state no_progress {state.get('no_progress')} does not match "
+            f"replayed {replayed_no_progress}"
+        )
+    expected_last_hash = history[-1].get("input_hash") if history else None
+    if state.get("last_input_hash") != expected_last_hash:
+        violations.append(
+            "state last_input_hash does not match the last history record"
+        )
     if state.get("status") in TERMINAL and not state.get("stop_reason"):
         violations.append("terminal state must have a stop_reason")
     if state.get("status") == "in_progress" and state.get("stop_reason"):
