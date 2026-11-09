@@ -4,4 +4,3 @@
 <!-- machine:end -->
 
 ## Curated notes
-
