@@ -11,11 +11,14 @@ Creates:
     org/roles/*.md              role cards (ceo, orchestrator, product-manager,
                                 architect, senior-developer,
                                 security-researcher, reviewer, memory-keeper)
+    org/messages/README.md      agent-to-agent message bus
     org/intake/README.md        multi-channel demand intake (github/forms/email)
     org/intake/config.json      GitHub intake configuration
     org/reviews/README.md       evidence-backed review record format
     scripts/sync_issues.py      GitHub issue intake helper
     scripts/org_status.py       agent busy/idle + review-queue management
+    scripts/org_common.py       shared org helpers
+    scripts/org_message.py      validated agent-to-agent messages
     scripts/intake.py           form/email demand intake
 
 Existing files are skipped unless --force is passed. --dry-run prints the
@@ -45,6 +48,8 @@ FILES = {
     "org/roles/reviewer.md": "assets/org/roles/reviewer.md",
     "org/roles/memory-keeper.md": "assets/org/roles/memory-keeper.md",
     "org/roles/product-engineer.md": "assets/org/roles/product-engineer.md",
+    "org/messages/README.md": "assets/org/messages/README.md",
+    "org/messages/.gitkeep": "assets/org/messages/.gitkeep",
     "org/intake/README.md": "assets/org/intake/README.md",
     "org/intake/config.json": "assets/org/intake/config.json",
     "org/intake/github/.gitkeep": "assets/org/intake/github/.gitkeep",
@@ -53,6 +58,8 @@ FILES = {
     "org/reviews/README.md": "assets/org/reviews/README.md",
     "scripts/sync_issues.py": "scripts/sync_issues.py",
     "scripts/org_status.py": "scripts/org_status.py",
+    "scripts/org_common.py": "scripts/org_common.py",
+    "scripts/org_message.py": "scripts/org_message.py",
     "scripts/intake.py": "scripts/intake.py",
 }
 
