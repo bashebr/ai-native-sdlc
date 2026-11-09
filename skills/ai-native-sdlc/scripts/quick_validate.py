@@ -53,6 +53,7 @@ PROMISED = [
     "scripts/org_status.py",
     "scripts/org_common.py",
     "scripts/org_message.py",
+    "scripts/org_memory.py",
     "scripts/intake.py",
     "assets/intent.md",
     "assets/spec.md",
@@ -90,6 +91,9 @@ PROMISED = [
     "assets/org/roles/memory-keeper.md",
     "assets/org/messages/README.md",
     "assets/org/messages/.gitkeep",
+    "assets/org/memory/README.md",
+    "assets/org/memory/context.md",
+    "assets/org/memory/events.jsonl",
     "assets/org/intake/README.md",
     "assets/org/intake/config.json",
     "assets/org/intake/github/.gitkeep",
@@ -277,6 +281,14 @@ def main() -> int:
             (org / "org" / "messages" / "README.md").is_file(),
             "org scaffold writes org/messages/README.md",
         )
+        check(
+            (org / "scripts" / "org_memory.py").is_file(),
+            "org scaffold writes scripts/org_memory.py",
+        )
+        check(
+            (org / "org" / "memory" / "context.md").is_file(),
+            "org scaffold writes org/memory/context.md",
+        )
         check((org / "scripts" / "intake.py").is_file(), "org scaffold writes scripts/intake.py")
 
     # 10. Python scripts compile cleanly.
@@ -295,6 +307,7 @@ def main() -> int:
             "org_status.py",
             "org_common.py",
             "org_message.py",
+            "org_memory.py",
             "intake.py",
             "quick_validate.py",
         ):
