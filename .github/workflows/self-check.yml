@@ -25,6 +25,15 @@ jobs:
       - name: Unit tests (band detector, eval runner)
         run: python3 -m unittest discover -s tests -v
 
+      - name: Agent org tests
+        run: |
+          python3 -m unittest \
+            tests.test_org_common \
+            tests.test_org_message \
+            tests.test_org_memory \
+            tests.test_org_loop \
+            tests.test_org_loop_workflow -v
+
       - name: Integration tests (release gate, scaffold)
         run: |
           bash tests/test_gate.sh

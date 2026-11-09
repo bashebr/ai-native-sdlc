@@ -282,6 +282,8 @@ def _agent_roles(org_chart: dict) -> tuple[dict[str, str], dict[str, bool]]:
     for role, config in agents.items():
         if not isinstance(config, dict):
             continue
+        if config.get("enabled", True) is False:
+            continue
         has_count = "count" in config
         count = config.get("count", 1)
         if not isinstance(count, int) or count < 1:
@@ -295,6 +297,14 @@ def _agent_roles(org_chart: dict) -> tuple[dict[str, str], dict[str, bool]]:
             role_by_name[name] = role
             human_by_name[name] = bool(config.get("human", False))
     return role_by_name, human_by_name
+
+
+def _escalation_owner(org_chart: dict) -> str:
+    escalation = org_chart.get("escalation", {})
+    if not isinstance(escalation, dict):
+        return "cto"
+    owner = escalation.get("owner")
+    return owner if isinstance(owner, str) and owner else "cto"
 
 
 def _load_org(org_chart_path: Path, status_path: Path) -> tuple[dict, dict, dict, dict, int]:
@@ -624,7 +634,7 @@ def cmd_review_submit(args: argparse.Namespace) -> int:
 
 def cmd_review_escalate(args: argparse.Namespace) -> int:
     try:
-        status, _, _, _, max_rounds = _load_org(
+        status, chart, _, _, max_rounds = _load_org(
             Path(args.org_chart), Path(args.status)
         )
     except ValueError as exc:
@@ -656,7 +666,7 @@ def cmd_review_escalate(args: argparse.Namespace) -> int:
         )
         return 1
     entry["status"] = "escalated"
-    entry["escalated_to"] = "cto"
+    entry["escalated_to"] = _escalation_owner(chart)
     return _save(Path(args.status), status)
 
 

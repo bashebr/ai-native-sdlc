@@ -1,14 +1,15 @@
 # Live org state: which agents are busy/idle and what is in the review queue.
 # Agents update this file when they accept or finish work; reviewers accept
-# reviews only when idle. Commit status changes in the same commit as the
-# artifact they describe — the commit chain is the audit trail.
+# reviews only when idle. Commit status changes with the artifact they describe.
 version: 1
 
 agents:
-  cto: { status: idle, assignment: null, last_report: null }
+  orchestrator: { status: idle, assignment: null, last_report: null }
   product-manager: { status: idle, assignment: null, last_report: null }
-  product-engineer: { status: idle, assignment: null, last_report: null }
-  engineer-1: { status: idle, assignment: null, last_report: null }
-  reviewer-1: { status: idle, assignment: null, last_report: null }
+  architect: { status: idle, assignment: null, last_report: null }
+  senior-developer: { status: idle, assignment: null, last_report: null }
+  security-researcher: { status: idle, assignment: null, last_report: null }
+  reviewer: { status: idle, assignment: null, last_report: null }
+  memory-keeper: { status: idle, assignment: null, last_report: null }
 
 review_queue: []

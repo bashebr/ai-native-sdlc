@@ -8,13 +8,21 @@ Creates:
     org/org-chart.yaml          role model (reports-to, authority, gates)
     org/status.yaml             live agent states + review queue
     org/protocol.md             reporting, peer review, escalation, intake
-    org/roles/*.md              role cards (ceo, cto, product-manager,
-                                product-engineer, engineer, reviewer)
+    org/roles/*.md              role cards (ceo, orchestrator, product-manager,
+                                architect, senior-developer,
+                                security-researcher, reviewer, memory-keeper)
+    org/messages/README.md      agent-to-agent message bus
+    org/memory/                 compact shared context + sourced event log
+    org/loop/                   bounded deterministic work-loop state
     org/intake/README.md        multi-channel demand intake (github/forms/email)
     org/intake/config.json      GitHub intake configuration
     org/reviews/README.md       evidence-backed review record format
     scripts/sync_issues.py      GitHub issue intake helper
     scripts/org_status.py       agent busy/idle + review-queue management
+    scripts/org_common.py       shared org helpers
+    scripts/org_message.py      validated agent-to-agent messages
+    scripts/org_memory.py       deterministic context digest + event log
+    scripts/org_loop.py         deterministic bounded work-loop state machine
     scripts/intake.py           form/email demand intake
 
 Existing files are skipped unless --force is passed. --dry-run prints the
@@ -36,11 +44,23 @@ FILES = {
     "org/status.yaml": "assets/org/status.yaml",
     "org/protocol.md": "assets/org/protocol.md",
     "org/roles/ceo.md": "assets/org/roles/ceo.md",
-    "org/roles/cto.md": "assets/org/roles/cto.md",
+    "org/roles/orchestrator.md": "assets/org/roles/orchestrator.md",
     "org/roles/product-manager.md": "assets/org/roles/product-manager.md",
-    "org/roles/product-engineer.md": "assets/org/roles/product-engineer.md",
-    "org/roles/engineer.md": "assets/org/roles/engineer.md",
+    "org/roles/architect.md": "assets/org/roles/architect.md",
+    "org/roles/senior-developer.md": "assets/org/roles/senior-developer.md",
+    "org/roles/security-researcher.md": "assets/org/roles/security-researcher.md",
     "org/roles/reviewer.md": "assets/org/roles/reviewer.md",
+    "org/roles/memory-keeper.md": "assets/org/roles/memory-keeper.md",
+    "org/roles/product-engineer.md": "assets/org/roles/product-engineer.md",
+    "org/messages/README.md": "assets/org/messages/README.md",
+    "org/messages/.gitkeep": "assets/org/messages/.gitkeep",
+    "org/memory/README.md": "assets/org/memory/README.md",
+    "org/memory/context.md": "assets/org/memory/context.md",
+    "org/memory/events.jsonl": "assets/org/memory/events.jsonl",
+    "org/loop/README.md": "assets/org/loop/README.md",
+    "org/loop/config.yaml": "assets/org/loop/config.yaml",
+    "org/loop/state.yaml": "assets/org/loop/state.yaml",
+    "org/loop/history.jsonl": "assets/org/loop/history.jsonl",
     "org/intake/README.md": "assets/org/intake/README.md",
     "org/intake/config.json": "assets/org/intake/config.json",
     "org/intake/github/.gitkeep": "assets/org/intake/github/.gitkeep",
@@ -49,6 +69,10 @@ FILES = {
     "org/reviews/README.md": "assets/org/reviews/README.md",
     "scripts/sync_issues.py": "scripts/sync_issues.py",
     "scripts/org_status.py": "scripts/org_status.py",
+    "scripts/org_common.py": "scripts/org_common.py",
+    "scripts/org_message.py": "scripts/org_message.py",
+    "scripts/org_memory.py": "scripts/org_memory.py",
+    "scripts/org_loop.py": "scripts/org_loop.py",
     "scripts/intake.py": "scripts/intake.py",
 }
 

@@ -122,19 +122,27 @@ peer review of every artifact, and multi-channel demand intake:
 python3 skills/ai-native-sdlc/scripts/init_org.py my-project
 ```
 
-The default org: **CEO (you, human)** → **CTO (agent)** → product manager,
-product engineering agent, engineers, and reviewer. Agents run the phases,
-review each other's work (reviewers accept only when idle), and report up the
-chain; the human CEO is involved at the critical points — intent ambiguity,
-unresolved spec/plan disagreement, PR merge, and release. Demand enters
-through GitHub issues (`scripts/sync_issues.py pull`), app feedback forms, and
-email, all landing as versioned records in `org/intake/` that the product
-engineering agent turns into tickets and intents.
+The default org: **CEO (you, human)** → **orchestrator** → product manager,
+architect, senior developer, security researcher, reviewer, and memory keeper.
+The orchestrator routes work and runs a deterministic bounded loop; specialists
+consult each other through versioned `org/messages/`. The memory keeper keeps
+`org/memory/context.md` compact. The loop stops after six turns, two
+no-progress turns, or a human gate — never in an unbounded retry.
 
-Org bookkeeping is command-driven: `scripts/org_status.py` keeps agent
-busy/idle state and the review queue valid against `org/org-chart.yaml`, and
-`scripts/intake.py add|list` normalizes form/email demand into the same intake
-format GitHub issues use.
+```bash
+python3 scripts/org_message.py send --from senior-developer --to architect \
+  --kind question --subject "Cache boundary" --body-file /tmp/question.md
+python3 scripts/org_loop.py next --json
+python3 scripts/org_loop.py advance --role senior-developer --action implement \
+  --result progress --artifact src/app.py --evidence .loop/tests.log
+python3 scripts/org_memory.py digest
+```
+
+Demand enters through GitHub issues (`scripts/sync_issues.py pull`), app
+feedback forms, and email, all landing as versioned records in `org/intake/`.
+`scripts/org_status.py` keeps busy/idle state and the review queue valid
+against `org/org-chart.yaml`; `scripts/intake.py add|list` normalizes form and
+email demand.
 
 See `skills/ai-native-sdlc/references/org.md` for the full protocol.
 
@@ -207,6 +215,7 @@ See `skills/ai-native-sdlc/references/adoption.md` for the staged rollout order.
         │   ├── gates-README.md
         │   ├── hook-settings.example.json
         │   ├── agent-evals.yml.example
+        │   ├── org-loop.yml.example
         │   └── managed-settings.example.json
         └── scripts/
             ├── init_workflow.py   # scaffolds the artifact skeleton
@@ -219,6 +228,10 @@ See `skills/ai-native-sdlc/references/adoption.md` for the staged rollout order.
             ├── workflow_state.py  # graph state runtime (status/advance/check)
             ├── check_plan_sync.py # deterministic plan-sync enforcement
             ├── scan_secrets.py    # deterministic secret scanner (build guardrail)
+            ├── org_common.py      # shared org helpers
+            ├── org_message.py     # agent-to-agent message bus
+            ├── org_memory.py      # context digest + event log
+            ├── org_loop.py        # bounded deterministic work loop
             ├── org_status.py      # agent busy/idle + review queue
             └── intake.py          # form/email demand intake
 ```

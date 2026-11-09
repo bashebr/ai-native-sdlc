@@ -1,0 +1,97 @@
+name: Agent org loop
+
+on:
+  workflow_dispatch:
+    inputs:
+      work_item:
+        description: "Optional; must match the loop state work item"
+        required: false
+        default: ""
+  issues:
+    types: [labeled]
+
+concurrency:
+  group: agent-org-${{ github.repository }}-${{ github.event.issue.number || inputs.work_item || 'manual' }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  one-turn:
+    if: github.event_name != 'issues' || github.event.label.name == 'agent-loop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ORG_AGENT_CMD: ${{ secrets.ORG_AGENT_CMD }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Check selected work item
+        if: ${{ inputs.work_item != '' }}
+        env:
+          WORK_ITEM: ${{ inputs.work_item }}
+        run: |
+          set -euo pipefail
+          CURRENT="$(python3 scripts/org_loop.py status --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["work_item"])')"
+          if [[ "$WORK_ITEM" != "$CURRENT" ]]; then
+            echo "Requested work item '$WORK_ITEM' does not match loop state '$CURRENT'."
+            echo "Initialize the loop explicitly: python3 scripts/org_loop.py init --work-item '$WORK_ITEM' --force"
+            exit 1
+          fi
+
+      - name: Validate org state
+        run: |
+          python3 scripts/org_status.py status
+          python3 scripts/org_message.py check
+          python3 scripts/org_memory.py digest
+          python3 scripts/org_memory.py check
+          python3 scripts/org_loop.py check
+
+      - name: Sync intake
+        run: python3 scripts/sync_issues.py pull
+
+      - name: Dispatch one turn
+        run: |
+          set -euo pipefail
+          test -n "${ORG_AGENT_CMD:-}" || { echo "ORG_AGENT_CMD is not configured"; exit 1; }
+          NEXT_JSON="$(python3 scripts/org_loop.py next --json)"
+          if python3 -c 'import json,sys; sys.exit(0 if json.loads(sys.argv[1]).get("status")=="stop" else 1)' "$NEXT_JSON"; then
+            echo "loop stopped: $NEXT_JSON"
+            exit 0
+          fi
+          ROLE="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["role"])' "$NEXT_JSON")"
+          ACTION="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["action"])' "$NEXT_JSON")"
+          ORG_ROLE="$ROLE" ORG_ACTION="$ACTION" bash -c "$ORG_AGENT_CMD"
+          python3 scripts/org_loop.py advance --role "$ROLE" --action "$ACTION" \
+            --result progress --evidence "ci turn"
+          python3 scripts/org_memory.py digest
+
+      - name: Open a PR for the turn
+        run: |
+          set -euo pipefail
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "no changes to publish"
+            exit 0
+          fi
+          BRANCH="agent-loop/${GITHUB_RUN_ID:-manual}"
+          git checkout -b "$BRANCH"
+          git add -A
+          git -c user.name="agent-org" \
+              -c user.email="agent-org@users.noreply.github.com" \
+              commit -m "agent-loop: one turn"
+          git push origin "$BRANCH"
+          EXISTING="$(gh pr list --head "$BRANCH" --json number --jq '.[0].number // empty')"
+          if [[ -z "$EXISTING" ]]; then
+            gh pr create --base main --head "$BRANCH" \
+              --title "agent-loop: one turn" \
+              --body "Automated one-turn dispatch. Human merge/release gates still apply."
+          fi

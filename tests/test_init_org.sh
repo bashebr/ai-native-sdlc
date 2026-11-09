@@ -18,20 +18,41 @@ python3 "$SCRIPT" "$tmp/dry" --dry-run >/dev/null 2>&1 || { echo "FAIL: --dry-ru
 # scaffold
 python3 "$SCRIPT" "$tmp/proj" >/dev/null 2>&1 || { echo "FAIL: scaffold exited non-zero"; fail=1; }
 for f in org/org-chart.yaml org/status.yaml org/protocol.md \
-         org/roles/ceo.md org/roles/cto.md org/roles/product-manager.md \
-         org/roles/product-engineer.md org/roles/engineer.md org/roles/reviewer.md \
+         org/roles/ceo.md org/roles/orchestrator.md org/roles/product-manager.md \
+         org/roles/architect.md org/roles/senior-developer.md \
+         org/roles/security-researcher.md org/roles/reviewer.md \
+         org/roles/memory-keeper.md \
+         org/messages/README.md org/messages/.gitkeep \
+         org/memory/README.md org/memory/context.md org/memory/events.jsonl \
+         org/loop/README.md org/loop/config.yaml org/loop/state.yaml \
+         org/loop/history.jsonl \
          org/intake/README.md org/intake/config.json \
          org/intake/github/.gitkeep org/intake/forms/.gitkeep org/intake/email/.gitkeep \
-         org/reviews/README.md scripts/sync_issues.py scripts/org_status.py scripts/intake.py; do
+         org/reviews/README.md scripts/sync_issues.py scripts/org_status.py \
+         scripts/intake.py scripts/org_common.py scripts/org_message.py \
+         scripts/org_memory.py scripts/org_loop.py; do
   [[ -e "$tmp/proj/$f" ]] || { echo "FAIL: missing $f"; fail=1; }
 done
 python3 -m py_compile "$tmp/proj/scripts/sync_issues.py" || { echo "FAIL: scaffolded sync_issues.py does not compile"; fail=1; }
 python3 -m py_compile "$tmp/proj/scripts/org_status.py" || { echo "FAIL: scaffolded org_status.py does not compile"; fail=1; }
 python3 -m py_compile "$tmp/proj/scripts/intake.py" || { echo "FAIL: scaffolded intake.py does not compile"; fail=1; }
+python3 -m py_compile "$tmp/proj/scripts/org_message.py" || { echo "FAIL: scaffolded org_message.py does not compile"; fail=1; }
+python3 -m py_compile "$tmp/proj/scripts/org_memory.py" || { echo "FAIL: scaffolded org_memory.py does not compile"; fail=1; }
+python3 -m py_compile "$tmp/proj/scripts/org_loop.py" || { echo "FAIL: scaffolded org_loop.py does not compile"; fail=1; }
 grep -q 'Chief Executive Officer' "$tmp/proj/org/roles/ceo.md" || { echo "FAIL: ceo role card content wrong"; fail=1; }
 grep -q 'peer_review' "$tmp/proj/org/org-chart.yaml" || { echo "FAIL: org-chart reviewer authority missing"; fail=1; }
 grep -q 'review_queue' "$tmp/proj/org/status.yaml" || { echo "FAIL: status.yaml review queue missing"; fail=1; }
 grep -q 'pr_merge' "$tmp/proj/org/protocol.md" || { echo "FAIL: protocol gates missing"; fail=1; }
+grep -q 'max_turns: 6' "$tmp/proj/org/loop/config.yaml" || { echo "FAIL: loop budget missing"; fail=1; }
+grep -q 'memory-keeper' "$tmp/proj/org/roles/memory-keeper.md" || { echo "FAIL: memory role missing"; fail=1; }
+grep -q 'security-researcher' "$tmp/proj/org/roles/security-researcher.md" || { echo "FAIL: security role missing"; fail=1; }
+grep -q 'orchestrator' "$tmp/proj/org/org-chart.yaml" || { echo "FAIL: orchestrator missing"; fail=1; }
+grep -q 'security-researcher' "$tmp/proj/org/org-chart.yaml" || { echo "FAIL: security role missing"; fail=1; }
+grep -q 'memory-keeper' "$tmp/proj/org/status.yaml" || { echo "FAIL: memory keeper missing"; fail=1; }
+grep -q 'senior-developer' "$tmp/proj/org/roles/senior-developer.md" || { echo "FAIL: developer card wrong"; fail=1; }
+(cd "$tmp/proj" && python3 scripts/org_message.py check >/dev/null) || { echo "FAIL: scaffolded message check failed"; fail=1; }
+(cd "$tmp/proj" && python3 scripts/org_memory.py check >/dev/null) || { echo "FAIL: scaffolded memory check failed"; fail=1; }
+(cd "$tmp/proj" && python3 scripts/org_loop.py check >/dev/null) || { echo "FAIL: scaffolded loop check failed"; fail=1; }
 
 # existing files are skipped; --force overwrites
 echo "sentinel" > "$tmp/proj/org/status.yaml"

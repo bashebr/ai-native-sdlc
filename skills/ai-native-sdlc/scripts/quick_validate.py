@@ -51,6 +51,10 @@ PROMISED = [
     "scripts/check_plan_sync.py",
     "scripts/scan_secrets.py",
     "scripts/org_status.py",
+    "scripts/org_common.py",
+    "scripts/org_message.py",
+    "scripts/org_memory.py",
+    "scripts/org_loop.py",
     "scripts/intake.py",
     "assets/intent.md",
     "assets/spec.md",
@@ -78,11 +82,24 @@ PROMISED = [
     "assets/org/status.yaml",
     "assets/org/protocol.md",
     "assets/org/roles/ceo.md",
-    "assets/org/roles/cto.md",
+    "assets/org/roles/orchestrator.md",
     "assets/org/roles/product-manager.md",
+    "assets/org/roles/architect.md",
+    "assets/org/roles/senior-developer.md",
+    "assets/org/roles/security-researcher.md",
     "assets/org/roles/product-engineer.md",
-    "assets/org/roles/engineer.md",
     "assets/org/roles/reviewer.md",
+    "assets/org/roles/memory-keeper.md",
+    "assets/org/messages/README.md",
+    "assets/org/messages/.gitkeep",
+    "assets/org/memory/README.md",
+    "assets/org/memory/context.md",
+    "assets/org/memory/events.jsonl",
+    "assets/org/loop/README.md",
+    "assets/org/loop/config.yaml",
+    "assets/org/loop/state.yaml",
+    "assets/org/loop/history.jsonl",
+    "assets/org-loop.yml.example",
     "assets/org/intake/README.md",
     "assets/org/intake/config.json",
     "assets/org/intake/github/.gitkeep",
@@ -255,10 +272,41 @@ def main() -> int:
         check(code == 0, "init_org.py scaffold smoke test")
         check((org / "org" / "org-chart.yaml").is_file(), "org scaffold writes org/org-chart.yaml")
         check((org / "org" / "status.yaml").is_file(), "org scaffold writes org/status.yaml")
-        check((org / "org" / "roles" / "cto.md").is_file(), "org scaffold writes role cards")
+        check(
+            (org / "org" / "roles" / "orchestrator.md").is_file(),
+            "org scaffold writes the orchestrator role",
+        )
         check((org / "org" / "intake" / "README.md").is_file(), "org scaffold writes intake README")
         check((org / "scripts" / "sync_issues.py").is_file(), "org scaffold writes scripts/sync_issues.py")
         check((org / "scripts" / "org_status.py").is_file(), "org scaffold writes scripts/org_status.py")
+        check(
+            (org / "scripts" / "org_message.py").is_file(),
+            "org scaffold writes scripts/org_message.py",
+        )
+        check(
+            (org / "org" / "messages" / "README.md").is_file(),
+            "org scaffold writes org/messages/README.md",
+        )
+        check(
+            (org / "scripts" / "org_memory.py").is_file(),
+            "org scaffold writes scripts/org_memory.py",
+        )
+        check(
+            (org / "org" / "memory" / "context.md").is_file(),
+            "org scaffold writes org/memory/context.md",
+        )
+        check(
+            (org / "scripts" / "org_loop.py").is_file(),
+            "org scaffold writes scripts/org_loop.py",
+        )
+        check(
+            (org / "org" / "loop" / "config.yaml").is_file(),
+            "org scaffold writes org/loop/config.yaml",
+        )
+        check(
+            (org / "org" / "loop" / "state.yaml").is_file(),
+            "org scaffold writes org/loop/state.yaml",
+        )
         check((org / "scripts" / "intake.py").is_file(), "org scaffold writes scripts/intake.py")
 
     # 10. Python scripts compile cleanly.
@@ -275,6 +323,10 @@ def main() -> int:
             "check_plan_sync.py",
             "scan_secrets.py",
             "org_status.py",
+            "org_common.py",
+            "org_message.py",
+            "org_memory.py",
+            "org_loop.py",
             "intake.py",
             "quick_validate.py",
         ):

@@ -1,0 +1,13 @@
+version: 1
+work_item: intent/intent.md
+base_commit: null
+turn: 0
+no_progress: 0
+phase: intent
+status: not_started
+last_input_hash: null
+stop_reason: null
+last_action: null
+artifacts: []
+acceptance: []
+updated_at: null

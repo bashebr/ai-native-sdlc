@@ -77,13 +77,13 @@ The loop is a directed graph, not a linear pipeline: plays and artifacts are nod
 ## Autonomous agent org
 
 For teams that want the loop to run with less human steering, the skill can
-scaffold an **agent org**: named roles (CEO-human, CTO, product manager,
-product engineering agent, engineers, reviewer) with an org chart, a reporting
-protocol, peer review of every artifact, and multi-channel demand intake
-(GitHub issues, forms, email). Agents run the phases, review each other's work,
-and escalate to the human CEO only at the critical gates (intent ambiguity,
-unresolved disagreement, PR merge, release). Scaffold it with
-`scripts/init_org.py <project-dir>`; full detail in `references/org.md`.
+scaffold an **agent org**: an orchestrator plus product manager, architect,
+senior developer, security researcher, reviewer, and memory keeper. Agents
+message each other through versioned `org/messages/`, keep a compact
+`org/memory/context.md`, and run a deterministic bounded loop
+(`max_turns: 6`, `max_no_progress: 2`). The human CEO keeps the PR-merge and
+release gates. Scaffold it with `scripts/init_org.py <project-dir>`; full
+detail in `references/org.md`.
 
 ## Templates and assets
 
@@ -92,7 +92,8 @@ The scaffold script copies the core skeleton into a new project (`intent.md`,
 `workflow-graph.yaml`, `.gitignore`, `evals/example.md`, `evals/README.md`,
 `gates/README.md`, `.secretsignore`, `hooks/pre-commit.example`, and the tool
 scripts `gate_ledger.py`/`run_evals.py`/`detect_bands.py`/`workflow_state.py`/
-`check_plan_sync.py`/`scan_secrets.py`); copy these manually when extending an existing repo. `spec.md` and `plan.md`
+`check_plan_sync.py`/`scan_secrets.py`/`org_common.py`/`org_message.py`/
+`org_memory.py`/`org_loop.py`); copy these manually when extending an existing repo. `spec.md` and `plan.md`
 are produced by the workflow itself during Design and Build — copy the blank
 forms only when you want them as starting points:
 
@@ -114,9 +115,10 @@ forms only when you want them as starting points:
 - `assets/PULL_REQUEST_TEMPLATE.md` — change request mapped to REVIEW.md passes + evidence
 - `assets/org/org-chart.yaml` — agent org role model (roles, reports-to, authority, gates; copied by `scripts/init_org.py`)
 - `assets/org/status.yaml` — live agent states (busy/idle) + review queue (maintained by `scripts/org_status.py`)
-- `assets/org/roles/*.md` — role cards (CEO, CTO, product manager, product engineering agent, engineer, reviewer)
+- `assets/org/roles/*.md` — role cards (CEO, orchestrator, product manager, architect, senior developer, security researcher, reviewer, memory keeper, optional product engineering agent)
 - `assets/org/protocol.md` — reporting, peer review, escalation, and gate rules for the org
 - `assets/org/intake/` + `assets/org/reviews/README.md` — demand intake (github/forms/email) and evidence-backed review record formats
+- `assets/org-loop.yml.example` — GitHub Actions one-turn loop trigger (human merge/release gates preserved)
 
 Organization-level examples to wire up during adoption:
 
@@ -134,6 +136,10 @@ Organization-level examples to wire up during adoption:
 - `scripts/gate_ledger.py` — hash-chained approval ledger: every gate decision is a committed, tamper-evident record; the release gate verifies `RELEASE_APPROVAL=ledger:<id>` against it
 - `scripts/workflow_state.py` — deterministic workflow state runtime (`status`/`advance`/`check`): graph nodes advance only through matching, chain-verified ledger records
 - `scripts/check_plan_sync.py` — deterministic plan-sync enforcement: implementation changes require an approved plan.md manifest in PR/CI or pre-commit mode
+- `scripts/org_common.py` — shared chart/frontmatter/atomic-write helpers for the org tools
+- `scripts/org_message.py` — typed agent-to-agent messages (`send`, `inbox`, `reply`, `close`, `check`)
+- `scripts/org_memory.py` — compact context digest plus append-only sourced events (`add`, `digest`, `check`, `show`)
+- `scripts/org_loop.py` — deterministic bounded work loop (`init`, `next`, `advance`, `status`, `check`, `run`)
 - `scripts/scan_secrets.py` — deterministic secret scanner for the build-phase red line: scans paths, the staged diff, or a PR diff for high-signal credentials, always redacts, exits non-zero on findings
 - `scripts/sync_issues.py` — GitHub issue intake for the product engineering agent (`pull` open issues into `org/intake/github/`, `push` a feature ticket)
 - `scripts/org_status.py` — agent busy/idle and review-queue management (`status`, `agent`, `review`) against `org/status.yaml`

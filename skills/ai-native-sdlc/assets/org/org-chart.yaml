@@ -1,7 +1,6 @@
-# Autonomous agent org — default role model.
-# CEO is the human owner; every agent reports up to the CTO, who reports to
-# the CEO. Edit roles/counts for your project. Keep this file committed:
-# it is the org contract agents read at session start.
+# Autonomous agent org — orchestrator-led team.
+# The CEO is the human owner; every agent reports to the orchestrator, who
+# reports to the CEO. Keep this file committed: it is the org contract.
 version: 1
 
 owner:
@@ -14,28 +13,39 @@ agents:
     human: true
     reports_to: null
     authority: [pr_merge_approval, release_authorization, escalation_final]
-  cto:
-    title: Chief Technology Officer
+  orchestrator:
+    title: Orchestrator
     reports_to: ceo
-    authority: [dispatch, review_routing, conflict_resolution]
+    authority: [dispatch, routing, budget_enforcement, gate_detection, memory_digest]
   product-manager:
     title: Product Manager
-    reports_to: cto
-    authority: [intent_first_review]
-  product-engineer:
-    title: Product Engineering Agent
-    reports_to: cto
-    authority: [file_tickets, draft_intents]
-  engineer:
-    title: Software Engineer
-    reports_to: cto
-    count: 1
-    authority: [implement]
+    reports_to: orchestrator
+    authority: [intent_review, scope_decision, acceptance_criteria]
+  architect:
+    title: Architect
+    reports_to: orchestrator
+    authority: [system_design, interface_decision, adr, design_review]
+  senior-developer:
+    title: Senior Developer
+    reports_to: orchestrator
+    authority: [plan, implement, test, verify]
+  security-researcher:
+    title: Security Researcher
+    reports_to: orchestrator
+    authority: [threat_model, security_assessment, security_finding]
   reviewer:
     title: Reviewer
-    reports_to: cto
-    count: 1
+    reports_to: orchestrator
     authority: [peer_review]
+  memory-keeper:
+    title: Memory Keeper
+    reports_to: orchestrator
+    authority: [curate_context, record_decision, flag_stale_context]
+  product-engineer:
+    title: Product Engineering Agent
+    reports_to: orchestrator
+    enabled: false
+    authority: [file_tickets, draft_intents]
 
 gates:
   intent: product_manager_review; escalate to CEO on ambiguity
@@ -44,6 +54,17 @@ gates:
   pr_merge: human (CEO)
   release: human (CEO); production gate + gate ledger record
 
+communication:
+  routes:
+    senior-developer: [architect, product-manager, security-researcher, reviewer, orchestrator]
+    reviewer: [senior-developer, security-researcher, orchestrator]
+    security-researcher: [senior-developer, reviewer, orchestrator]
+    architect: [senior-developer, product-manager, orchestrator]
+    product-manager: [orchestrator, product-engineer]
+    memory-keeper: [orchestrator]
+    orchestrator: ["*"]
+
 escalation:
+  owner: orchestrator
   max_disagreement_rounds: 2
-  route: writer -> reviewer -> cto -> ceo
+  route: writer -> reviewer -> orchestrator -> ceo
