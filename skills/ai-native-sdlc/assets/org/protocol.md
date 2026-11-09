@@ -6,43 +6,52 @@ and escalation so the loop runs with less human steering.
 
 ## Reporting
 
-1. Every agent commits its artifact (intent.md, spec.md, plan.md, code+tests,
-   review findings) with evidence.
-2. When an agent accepts or finishes work, it updates `org/status.yaml`
-   (busy/idle, assignment, last_report) in the same commit, using
-   `scripts/org_status.py` so the org-chart rules are enforced.
-3. Reports flow up one level: engineers → CTO; PM and product → CTO; CTO →
-   CEO. Routine reporting is the status file plus artifact commits; the CEO
-   reads them at the gates and on escalation.
+1. Every agent commits its artifact with evidence.
+2. Status changes ride in the same commit as the artifact.
+3. Reports flow to the orchestrator, who reports to the CEO.
+4. The orchestrator records every turn with `scripts/org_loop.py advance`.
+
+## Communication
+
+Use `scripts/org_message.py` for questions, decisions, handoffs, findings, and
+escalations. Messages are committed in `org/messages/`. An open question blocks
+the affected turn until answered or escalated. Preferred routes live in
+`org/org-chart.yaml`; any known agent may message any other known agent.
+
+## Memory
+
+`org/memory/context.md` is the main context. Durable decisions go in
+`org/memory/events.jsonl` with a source. The memory keeper curates it and the
+orchestrator digests it after each turn.
 
 ## Peer review
 
-1. A writer that finishes an artifact requests a review from the CTO.
-2. The CTO assigns an idle reviewer from `org/status.yaml` and marks it busy.
-   If no reviewer is idle, the request waits in the review queue.
-3. The reviewer writes `org/reviews/<artifact>-<id>.md` with severity-ranked,
-   evidence-backed findings and a verdict (`approved` | `changes`).
-4. The writer addresses findings; a second review round happens if needed.
-5. Two unresolved rounds → CTO decides; if the artifact is a spec or plan and
-   the conflict persists → CEO.
+Writers never review their own work. The orchestrator assigns an idle reviewer.
+The reviewer records findings and a verdict. Two unresolved rounds escalate to
+the orchestrator, then the CEO for spec/plan conflicts.
 
-`org_status.py review assign|submit|escalate` records every queue transition;
-hand-editing the queue is not supported.
+## Bounded loop
 
-## Escalation
-
-- Intent ambiguity → PM → CEO.
-- Spec/plan disagreement → writer ↔ reviewer (max 2 rounds) → CTO → CEO.
-- Anything that would cross a gate without human approval → stop and report.
+`scripts/org_loop.py` dispatches one role per turn with defaults
+`max_turns: 6`, `max_no_progress: 2`, `max_review_rounds: 2`. It stops as
+`solved`, `gate_required`, `failed`, `stalled`, or `exhausted`. It never
+extends its own budget.
 
 ## Gates
 
 | Gate | Who decides |
 |---|---|
-| intent | PM first review; CEO only on escalation |
-| spec / plan | peer review; CEO only on unresolved disagreement |
-| pr_merge | human (CEO) |
-| release | human (CEO) — production-gate.sh + gate ledger record |
+| Intent | Product manager first; CEO on escalation |
+| Spec / plan | Peer review; CEO after two unresolved rounds |
+| `pr_merge` | Human (CEO) |
+| Release | Human (CEO) — production gate + ledger record |
+
+## Escalation
+
+- Intent ambiguity → PM → CEO.
+- Spec/plan disagreement → writer ↔ reviewer (max 2 rounds) → orchestrator →
+  CEO.
+- Anything that would cross a gate without human approval → stop and report.
 
 ## Intake
 

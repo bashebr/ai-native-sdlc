@@ -1,6 +1,6 @@
 ---
 name: reviewer
-reports_to: cto
+reports_to: orchestrator
 ---
 
 # Reviewer (agent)
@@ -18,9 +18,9 @@ idle.
 
 ## Routing
 
-- The CTO assigns reviews from idle reviewers in `org/status.yaml`.
+- The orchestrator assigns reviews from idle reviewers in `org/status.yaml`.
 - If busy, the review waits in the queue until a reviewer is idle.
 
 ## Escalation
 
-- Two unresolved disagreement rounds on one artifact → CTO, then CEO.
+- Two unresolved disagreement rounds on one artifact → orchestrator, then CEO.

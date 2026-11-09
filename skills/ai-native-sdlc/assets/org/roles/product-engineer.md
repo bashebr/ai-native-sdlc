@@ -1,6 +1,6 @@
 ---
 name: product-engineer
-reports_to: cto
+reports_to: orchestrator
 ---
 
 # Product Engineering Agent

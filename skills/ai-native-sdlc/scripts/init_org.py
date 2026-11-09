@@ -8,8 +8,9 @@ Creates:
     org/org-chart.yaml          role model (reports-to, authority, gates)
     org/status.yaml             live agent states + review queue
     org/protocol.md             reporting, peer review, escalation, intake
-    org/roles/*.md              role cards (ceo, cto, product-manager,
-                                product-engineer, engineer, reviewer)
+    org/roles/*.md              role cards (ceo, orchestrator, product-manager,
+                                architect, senior-developer,
+                                security-researcher, reviewer, memory-keeper)
     org/intake/README.md        multi-channel demand intake (github/forms/email)
     org/intake/config.json      GitHub intake configuration
     org/reviews/README.md       evidence-backed review record format
@@ -36,11 +37,14 @@ FILES = {
     "org/status.yaml": "assets/org/status.yaml",
     "org/protocol.md": "assets/org/protocol.md",
     "org/roles/ceo.md": "assets/org/roles/ceo.md",
-    "org/roles/cto.md": "assets/org/roles/cto.md",
+    "org/roles/orchestrator.md": "assets/org/roles/orchestrator.md",
     "org/roles/product-manager.md": "assets/org/roles/product-manager.md",
-    "org/roles/product-engineer.md": "assets/org/roles/product-engineer.md",
-    "org/roles/engineer.md": "assets/org/roles/engineer.md",
+    "org/roles/architect.md": "assets/org/roles/architect.md",
+    "org/roles/senior-developer.md": "assets/org/roles/senior-developer.md",
+    "org/roles/security-researcher.md": "assets/org/roles/security-researcher.md",
     "org/roles/reviewer.md": "assets/org/roles/reviewer.md",
+    "org/roles/memory-keeper.md": "assets/org/roles/memory-keeper.md",
+    "org/roles/product-engineer.md": "assets/org/roles/product-engineer.md",
     "org/intake/README.md": "assets/org/intake/README.md",
     "org/intake/config.json": "assets/org/intake/config.json",
     "org/intake/github/.gitkeep": "assets/org/intake/github/.gitkeep",

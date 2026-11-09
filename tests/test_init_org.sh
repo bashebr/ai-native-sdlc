@@ -18,8 +18,10 @@ python3 "$SCRIPT" "$tmp/dry" --dry-run >/dev/null 2>&1 || { echo "FAIL: --dry-ru
 # scaffold
 python3 "$SCRIPT" "$tmp/proj" >/dev/null 2>&1 || { echo "FAIL: scaffold exited non-zero"; fail=1; }
 for f in org/org-chart.yaml org/status.yaml org/protocol.md \
-         org/roles/ceo.md org/roles/cto.md org/roles/product-manager.md \
-         org/roles/product-engineer.md org/roles/engineer.md org/roles/reviewer.md \
+         org/roles/ceo.md org/roles/orchestrator.md org/roles/product-manager.md \
+         org/roles/architect.md org/roles/senior-developer.md \
+         org/roles/security-researcher.md org/roles/reviewer.md \
+         org/roles/memory-keeper.md \
          org/intake/README.md org/intake/config.json \
          org/intake/github/.gitkeep org/intake/forms/.gitkeep org/intake/email/.gitkeep \
          org/reviews/README.md scripts/sync_issues.py scripts/org_status.py scripts/intake.py; do
@@ -32,6 +34,10 @@ grep -q 'Chief Executive Officer' "$tmp/proj/org/roles/ceo.md" || { echo "FAIL: 
 grep -q 'peer_review' "$tmp/proj/org/org-chart.yaml" || { echo "FAIL: org-chart reviewer authority missing"; fail=1; }
 grep -q 'review_queue' "$tmp/proj/org/status.yaml" || { echo "FAIL: status.yaml review queue missing"; fail=1; }
 grep -q 'pr_merge' "$tmp/proj/org/protocol.md" || { echo "FAIL: protocol gates missing"; fail=1; }
+grep -q 'orchestrator' "$tmp/proj/org/org-chart.yaml" || { echo "FAIL: orchestrator missing"; fail=1; }
+grep -q 'security-researcher' "$tmp/proj/org/org-chart.yaml" || { echo "FAIL: security role missing"; fail=1; }
+grep -q 'memory-keeper' "$tmp/proj/org/status.yaml" || { echo "FAIL: memory keeper missing"; fail=1; }
+grep -q 'senior-developer' "$tmp/proj/org/roles/senior-developer.md" || { echo "FAIL: developer card wrong"; fail=1; }
 
 # existing files are skipped; --force overwrites
 echo "sentinel" > "$tmp/proj/org/status.yaml"

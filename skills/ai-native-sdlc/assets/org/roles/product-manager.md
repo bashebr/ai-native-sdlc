@@ -1,6 +1,6 @@
 ---
 name: product-manager
-reports_to: cto
+reports_to: orchestrator
 ---
 
 # Product Manager (agent)

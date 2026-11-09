@@ -78,11 +78,14 @@ PROMISED = [
     "assets/org/status.yaml",
     "assets/org/protocol.md",
     "assets/org/roles/ceo.md",
-    "assets/org/roles/cto.md",
+    "assets/org/roles/orchestrator.md",
     "assets/org/roles/product-manager.md",
+    "assets/org/roles/architect.md",
+    "assets/org/roles/senior-developer.md",
+    "assets/org/roles/security-researcher.md",
     "assets/org/roles/product-engineer.md",
-    "assets/org/roles/engineer.md",
     "assets/org/roles/reviewer.md",
+    "assets/org/roles/memory-keeper.md",
     "assets/org/intake/README.md",
     "assets/org/intake/config.json",
     "assets/org/intake/github/.gitkeep",
@@ -255,7 +258,10 @@ def main() -> int:
         check(code == 0, "init_org.py scaffold smoke test")
         check((org / "org" / "org-chart.yaml").is_file(), "org scaffold writes org/org-chart.yaml")
         check((org / "org" / "status.yaml").is_file(), "org scaffold writes org/status.yaml")
-        check((org / "org" / "roles" / "cto.md").is_file(), "org scaffold writes role cards")
+        check(
+            (org / "org" / "roles" / "orchestrator.md").is_file(),
+            "org scaffold writes the orchestrator role",
+        )
         check((org / "org" / "intake" / "README.md").is_file(), "org scaffold writes intake README")
         check((org / "scripts" / "sync_issues.py").is_file(), "org scaffold writes scripts/sync_issues.py")
         check((org / "scripts" / "org_status.py").is_file(), "org scaffold writes scripts/org_status.py")
