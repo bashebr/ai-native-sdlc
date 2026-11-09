@@ -526,6 +526,46 @@ review_queue:
         self.assertEqual(res.returncode, 1)
         self.assertIn("does not match", res.stderr)
 
+    def test_unanswered_question_escalates_after_no_progress(self):
+        res = subprocess.run(
+            [
+                sys.executable,
+                str(self.tmp / "scripts" / "org_message.py"),
+                "--root",
+                str(self.tmp),
+                "send",
+                "--from",
+                "senior-developer",
+                "--to",
+                "architect",
+                "--kind",
+                "question",
+                "--subject",
+                "Unanswered boundary question",
+                "--body",
+                "Please decide.",
+            ],
+            cwd=self.tmp,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(res.returncode, 0, res.stderr + res.stdout)
+        for attempt in (1, 2):
+            nxt = self.next_json()
+            self.assertEqual(nxt["role"], "architect")
+            res = self.advance(
+                "architect",
+                "answer_message",
+                result="no_progress",
+                artifact=None,
+                evidence=f"no answer, attempt {attempt}",
+            )
+            self.assertEqual(res.returncode, 0, res.stderr + res.stdout)
+        status = self.status_json()
+        self.assertEqual(status["status"], "gate_required")
+        self.assertEqual(status["stop_reason"], "gate_required")
+        self.assertEqual(self.next_json()["reason"], "gate_required")
+
     def test_advance_requires_evidence(self):
         res = self.advance(
             "product-manager", "review_intent", artifact="spec.md", evidence=None

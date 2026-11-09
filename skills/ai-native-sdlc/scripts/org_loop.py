@@ -323,6 +323,7 @@ def _solved(root: Path, state: dict, config: dict, messages: list[dict]) -> bool
 def next_action(root: Path) -> dict:
     config = load_config(root)
     state = load_state(root)
+    history = load_history(root)
     if state.get("status") in TERMINAL:
         return {
             "status": "stop",
@@ -340,6 +341,21 @@ def next_action(root: Path) -> dict:
     )
     if open_questions:
         question = open_questions[0]
+        attempts = sum(
+            1
+            for record in history
+            if record.get("action") == "answer_message"
+            and record.get("message_id") == question.get("id")
+        )
+        if attempts >= int(config.get("max_no_progress", 2)):
+            return {
+                "status": "stop",
+                "reason": "gate_required",
+                "detail": (
+                    f"consultation {question.get('id')} was not answered after "
+                    f"{attempts} attempt(s); escalate to the CEO"
+                ),
+            }
         if question.get("to") == "ceo":
             return {
                 "status": "stop",
@@ -462,18 +478,24 @@ def advance(
         else None
     )
     if role != expected.get("role") or action != expected.get("action"):
-        if not answered_message_id:
+        if not (action == "answer_message" and answered_message_id):
             raise ValueError(
                 "dispatch does not match: "
                 f"expected {expected.get('role')}:{expected.get('action')}, "
                 f"got {role}:{action}"
             )
-    elif action == "answer_message":
-        if not answered_message_id:
+    if action == "answer_message":
+        attempted_message_id = (
+            str(expected.get("message_id")) if expected.get("message_id") else None
+        )
+        if answered_message_id:
+            attempted_message_id = answered_message_id
+        elif attempted_message_id is None:
             raise ValueError(
-                f"message {expected.get('message_id')!r} has not been answered"
+                "answer_message dispatch has no message id"
             )
-        answered_message_id = str(expected.get("message_id"))
+        else:
+            result = "no_progress"
 
     config = load_config(root)
     if not state.get("base_commit"):
@@ -524,7 +546,13 @@ def advance(
         phase_after = phase_cfg.get("next", phase)
 
     if status == "in_progress":
-        if phase_after == "done":
+        if (
+            action == "answer_message"
+            and not answered_message_id
+            and no_progress >= int(config.get("max_no_progress", 2))
+        ):
+            status, stop_reason = "gate_required", "gate_required"
+        elif phase_after == "done":
             if _solved(root, {**state, "acceptance": acceptance}, config, messages):
                 status, stop_reason = "solved", "solved"
             else:
@@ -567,8 +595,9 @@ def advance(
         "acceptance": acceptance,
         "timestamp": common.now_iso(),
     }
-    if answered_message_id:
-        record["message_id"] = answered_message_id
+    if action == "answer_message":
+        record["message_id"] = attempted_message_id
+        record["answered"] = bool(answered_message_id)
     _append_history(root, record)
     return state
 
@@ -623,14 +652,17 @@ def check(root: Path) -> list[str]:
         ):
             if not record.get(key):
                 violations.append(f"history record {index} missing {key}")
-        if record.get("action") == "answer_message" and not record.get("message_id"):
-            violations.append(f"history record {index} missing message_id")
-    message_ids = [
+        if record.get("action") == "answer_message":
+            if not record.get("message_id"):
+                violations.append(f"history record {index} missing message_id")
+            if not isinstance(record.get("answered"), bool):
+                violations.append(f"history record {index} missing answered flag")
+    answered_ids = [
         record.get("message_id")
         for record in history
-        if record.get("action") == "answer_message"
+        if record.get("action") == "answer_message" and record.get("answered") is True
     ]
-    if len(message_ids) != len(set(message_ids)):
+    if len(answered_ids) != len(set(answered_ids)):
         violations.append("a message was recorded as answered more than once")
     replayed_no_progress = 0
     previous_hash = None
