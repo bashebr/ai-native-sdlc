@@ -18,6 +18,10 @@
 #                           acceptance) from authorizing a production deploy.
 #   DEPLOY_PATTERNS         extended regex of deploy actions (default below).
 #   PROD_CONTEXT_PATTERNS   extended regex of production contexts (default below).
+#   CONTEXT_SWITCH_PATTERNS extended regex of commands that change the active
+#                           deploy context (default below). A switch that names
+#                           a non-production context clears a production flag
+#                           set by an earlier segment.
 #   READ_ONLY_PATTERNS      extended regex of read-only commands that are never
 #                           blocked (default below).
 #
@@ -39,6 +43,8 @@ set -euo pipefail
 DEPLOY_PATTERNS="${DEPLOY_PATTERNS:-kubectl[[:space:]]+(apply|create|delete|edit|rollout|scale|set|patch|run|deploy)|helm[[:space:]]+(upgrade|install|rollback|uninstall)|terraform[[:space:]]+(apply|destroy|import)|flyctl[[:space:]]+(deploy|launch|release)|serverless[[:space:]]+deploy|sls[[:space:]]+deploy|sam[[:space:]]+deploy|aws[[:space:]]+(deploy|ecs|eks|lambda[[:space:]]+update-function)|cdk[[:space:]]+deploy|docker[[:space:]]+(push|compose[[:space:]]+up)|(^|[^[:alnum:]_])deploy([^[:alnum:]_]|$)}"
 
 PROD_CONTEXT_PATTERNS="${PROD_CONTEXT_PATTERNS:-(^|[^[:alnum:]_])(production|prod|prd)([^[:alnum:]_]|$)}"
+
+CONTEXT_SWITCH_PATTERNS="${CONTEXT_SWITCH_PATTERNS:-((^|[^[:alnum:]_])kubectl[[:space:]]+config[[:space:]]+use-context([[:space:]]|$))|((^|[^[:alnum:]_])KUBECONFIG=)|((^|[^[:alnum:]_])aws[[:space:]]+configure[[:space:]]+set[[:space:]]+profile([[:space:]]|$))|((^|[^[:alnum:]_])gcloud[[:space:]]+config[[:space:]]+set[[:space:]]+project([[:space:]]|$))|((^|[^[:alnum:]_])--context(=|[[:space:]]))}"
 
 RELEASE_GATE="${RELEASE_GATE:-release_authorization}"
 
@@ -88,15 +94,29 @@ fi
 segments="$(printf '%s' "$cmd" | awk '{ gsub(/&&|\|\||[;&|]/, "\n"); print }')"
 
 production_deploy=""
+production_context=0
 while IFS= read -r segment; do
   [[ -z "${segment//[[:space:]]/}" ]] && continue
-  # Read-only segments never trip the gate.
+  # Read-only segments never trip the gate and never establish a context.
   if printf '%s' "$segment" | grep -Eq "$READ_ONLY_PATTERNS"; then
     continue
   fi
+  # A context switch (`kubectl config use-context ...`,
+  # `export KUBECONFIG=...`, `aws configure set profile ...`, `--context ...`)
+  # applies to the segments that follow it. A switch that leaves production
+  # clears the flag; any other non-read-only production mention keeps it set.
+  if printf '%s' "$segment" | grep -Eq "$CONTEXT_SWITCH_PATTERNS"; then
+    if printf '%s' "$segment" | grep -Eq "$PROD_CONTEXT_PATTERNS"; then
+      production_context=1
+    else
+      production_context=0
+    fi
+  elif printf '%s' "$segment" | grep -Eq "$PROD_CONTEXT_PATTERNS"; then
+    production_context=1
+  fi
   # A deploy action in a production context is a gated action.
   if printf '%s' "$segment" | grep -Eq "$DEPLOY_PATTERNS" \
-     && printf '%s' "$segment" | grep -Eq "$PROD_CONTEXT_PATTERNS"; then
+     && [[ "$production_context" -eq 1 ]]; then
     production_deploy="$segment"
     break
   fi
