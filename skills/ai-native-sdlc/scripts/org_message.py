@@ -70,11 +70,29 @@ def _path(root: Path, message_id: str) -> Path:
 def load_messages(root: Path) -> list[dict]:
     out: list[dict] = []
     for path in sorted(_messages_dir(root).glob("*.md")):
-        fields, body = common.read_frontmatter(path.read_text(encoding="utf-8"))
+        text = path.read_text(encoding="utf-8")
+        fields, body = common.read_frontmatter(text)
         fields["body"] = body
         fields["_path"] = path
+        error = _frontmatter_error(text)
+        if error:
+            fields["_frontmatter_error"] = error
         out.append(fields)
     return out
+
+
+def _frontmatter_error(text: str) -> str | None:
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return "missing opening delimiter"
+    try:
+        end = next(i for i in range(1, len(lines)) if lines[i].strip() == "---")
+    except StopIteration:
+        return "missing closing delimiter"
+    for line in lines[1:end]:
+        if line.strip() and ":" not in line:
+            return f"invalid field line {line!r}"
+    return None
 
 
 def _validate_parties(root: Path, sender: str, recipient: str) -> None:
@@ -100,9 +118,7 @@ def _is_blocking(kind: str, severity: str | None, blocking: bool) -> bool:
 
 def _create_message(path: Path, text: str) -> None:
     """Create a message without overwriting a concurrently allocated id."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "x", encoding="utf-8") as fh:
-        fh.write(text)
+    common.atomic_create(path, text)
 
 
 def send(
@@ -211,6 +227,12 @@ def validate(root: Path) -> list[str]:
     messages = load_messages(root)
     ids = {m.get("id") for m in messages}
     for message in messages:
+        if message.get("_frontmatter_error"):
+            violations.append(
+                f"{message['_path']}: malformed frontmatter: "
+                f"{message['_frontmatter_error']}"
+            )
+            continue
         current = message.get("id")
         path = message["_path"]
         if not isinstance(current, str) or not current:

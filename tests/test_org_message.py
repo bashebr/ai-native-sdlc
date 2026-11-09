@@ -4,10 +4,15 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = REPO_ROOT / "skills/ai-native-sdlc/scripts"
+sys.path.insert(0, str(SCRIPTS))
+
+import org_common  # noqa: E402
+import org_message  # noqa: E402
 
 CHART = """\
 version: 1
@@ -103,6 +108,38 @@ class MessageTests(unittest.TestCase):
         )
         self.assertEqual(res.returncode, 1)
         self.assertIn("missing-0001", res.stderr)
+
+    def test_check_rejects_malformed_frontmatter(self):
+        path = self.tmp / "org" / "messages" / "senior-developer-0001.md"
+        path.write_text(
+            "---\n"
+            "id: senior-developer-0001\n"
+            "from: senior-developer\n"
+            "to: architect\n"
+            "kind: question\n"
+            "subject: Missing closing delimiter\n"
+            "status: open\n"
+            "created_at: 2026-11-08T10:00:00Z\n"
+            "\n"
+            "Body without a closing delimiter.\n",
+            encoding="utf-8",
+        )
+
+        res = self.run_cli("check")
+
+        self.assertEqual(res.returncode, 1, res.stderr + res.stdout)
+        self.assertIn("malformed frontmatter", res.stdout)
+
+    def test_create_message_never_publishes_partial_file(self):
+        path = self.tmp / "org" / "messages" / "senior-developer-0001.md"
+        with mock.patch.object(
+            org_common.os, "link", side_effect=OSError("simulated publish failure")
+        ):
+            with self.assertRaises(OSError):
+                org_message._create_message(path, "complete message\n")
+
+        self.assertFalse(path.exists())
+        self.assertEqual(list(path.parent.glob(f".{path.name}.*")), [])
 
     def test_blocking_finding_requires_severity(self):
         res = self.run_cli(

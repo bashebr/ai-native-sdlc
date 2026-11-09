@@ -37,6 +37,21 @@ def atomic_write(path: Path, text: str) -> None:
         raise
 
 
+def atomic_create(path: Path, text: str) -> None:
+    """Atomically publish a new file without overwriting an existing one."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        os.link(tmp_name, path)
+    finally:
+        try:
+            os.unlink(tmp_name)
+        except OSError:
+            pass
+
+
 def _parse_value(raw: str):
     value = raw.strip()
     if value in ("true", "True"):
