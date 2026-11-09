@@ -24,11 +24,13 @@ for f in org/org-chart.yaml org/status.yaml org/protocol.md \
          org/roles/memory-keeper.md \
          org/messages/README.md org/messages/.gitkeep \
          org/memory/README.md org/memory/context.md org/memory/events.jsonl \
+         org/loop/README.md org/loop/config.yaml org/loop/state.yaml \
+         org/loop/history.jsonl \
          org/intake/README.md org/intake/config.json \
          org/intake/github/.gitkeep org/intake/forms/.gitkeep org/intake/email/.gitkeep \
          org/reviews/README.md scripts/sync_issues.py scripts/org_status.py \
          scripts/intake.py scripts/org_common.py scripts/org_message.py \
-         scripts/org_memory.py; do
+         scripts/org_memory.py scripts/org_loop.py; do
   [[ -e "$tmp/proj/$f" ]] || { echo "FAIL: missing $f"; fail=1; }
 done
 python3 -m py_compile "$tmp/proj/scripts/sync_issues.py" || { echo "FAIL: scaffolded sync_issues.py does not compile"; fail=1; }
@@ -36,6 +38,7 @@ python3 -m py_compile "$tmp/proj/scripts/org_status.py" || { echo "FAIL: scaffol
 python3 -m py_compile "$tmp/proj/scripts/intake.py" || { echo "FAIL: scaffolded intake.py does not compile"; fail=1; }
 python3 -m py_compile "$tmp/proj/scripts/org_message.py" || { echo "FAIL: scaffolded org_message.py does not compile"; fail=1; }
 python3 -m py_compile "$tmp/proj/scripts/org_memory.py" || { echo "FAIL: scaffolded org_memory.py does not compile"; fail=1; }
+python3 -m py_compile "$tmp/proj/scripts/org_loop.py" || { echo "FAIL: scaffolded org_loop.py does not compile"; fail=1; }
 grep -q 'Chief Executive Officer' "$tmp/proj/org/roles/ceo.md" || { echo "FAIL: ceo role card content wrong"; fail=1; }
 grep -q 'peer_review' "$tmp/proj/org/org-chart.yaml" || { echo "FAIL: org-chart reviewer authority missing"; fail=1; }
 grep -q 'review_queue' "$tmp/proj/org/status.yaml" || { echo "FAIL: status.yaml review queue missing"; fail=1; }

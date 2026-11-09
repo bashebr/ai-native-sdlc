@@ -13,6 +13,7 @@ Creates:
                                 security-researcher, reviewer, memory-keeper)
     org/messages/README.md      agent-to-agent message bus
     org/memory/                 compact shared context + sourced event log
+    org/loop/                   bounded deterministic work-loop state
     org/intake/README.md        multi-channel demand intake (github/forms/email)
     org/intake/config.json      GitHub intake configuration
     org/reviews/README.md       evidence-backed review record format
@@ -21,6 +22,7 @@ Creates:
     scripts/org_common.py       shared org helpers
     scripts/org_message.py      validated agent-to-agent messages
     scripts/org_memory.py       deterministic context digest + event log
+    scripts/org_loop.py         deterministic bounded work-loop state machine
     scripts/intake.py           form/email demand intake
 
 Existing files are skipped unless --force is passed. --dry-run prints the
@@ -55,6 +57,10 @@ FILES = {
     "org/memory/README.md": "assets/org/memory/README.md",
     "org/memory/context.md": "assets/org/memory/context.md",
     "org/memory/events.jsonl": "assets/org/memory/events.jsonl",
+    "org/loop/README.md": "assets/org/loop/README.md",
+    "org/loop/config.yaml": "assets/org/loop/config.yaml",
+    "org/loop/state.yaml": "assets/org/loop/state.yaml",
+    "org/loop/history.jsonl": "assets/org/loop/history.jsonl",
     "org/intake/README.md": "assets/org/intake/README.md",
     "org/intake/config.json": "assets/org/intake/config.json",
     "org/intake/github/.gitkeep": "assets/org/intake/github/.gitkeep",
@@ -66,6 +72,7 @@ FILES = {
     "scripts/org_common.py": "scripts/org_common.py",
     "scripts/org_message.py": "scripts/org_message.py",
     "scripts/org_memory.py": "scripts/org_memory.py",
+    "scripts/org_loop.py": "scripts/org_loop.py",
     "scripts/intake.py": "scripts/intake.py",
 }
 

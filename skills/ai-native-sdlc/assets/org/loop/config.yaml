@@ -1,0 +1,25 @@
+version: 1
+max_turns: 6
+max_no_progress: 2
+max_review_rounds: 2
+require_security_clear: true
+review_artifact: implementation
+human_gates: [code_owner_approve, release_authorization]
+acceptance:
+  commands:
+    - python3 -m unittest discover -s tests
+    - make lint
+roles:
+  product: product-manager
+  design: architect
+  implement: senior-developer
+  security: security-researcher
+  review: reviewer
+phases:
+  intent: { role: product-manager, action: review_intent, next: spec }
+  spec: { role: architect, action: draft_spec, next: plan }
+  plan: { role: senior-developer, action: draft_plan, next: implement }
+  implement: { role: senior-developer, action: implement, next: security }
+  security: { role: security-researcher, action: assess_security, next: review }
+  review: { role: reviewer, action: review, next: done }
+  done: { role: null, action: null, next: null }
