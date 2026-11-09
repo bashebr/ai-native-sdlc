@@ -157,7 +157,9 @@ python3 scripts/org_loop.py next --json
 Copy `assets/org-loop.yml.example` to `.github/workflows/org-loop.yml` after
 configuring the `ORG_AGENT_CMD` secret and the repository permissions. The
 workflow dispatches one turn per run and opens a PR; it never merges or
-releases.
+releases. A manual `work_item` input must match the existing loop state; to
+switch work items, initialize the loop explicitly with
+`org_loop.py init --work-item ... --force`.
 
 ## Framework mapping
 

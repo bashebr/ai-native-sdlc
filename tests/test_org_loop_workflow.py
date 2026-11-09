@@ -31,6 +31,12 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn("org_memory.py check", self.text)
         self.assertIn("org_loop.py check", self.text)
 
+    def test_manual_work_item_is_validated(self):
+        self.assertIn('default: ""', self.text)
+        self.assertIn("Check selected work item", self.text)
+        self.assertIn("org_loop.py status --json", self.text)
+        self.assertIn("does not match loop state", self.text)
+
     def test_never_merges_or_releases(self):
         self.assertNotIn("gh pr merge", self.text)
         self.assertNotIn("git push origin main", self.text)

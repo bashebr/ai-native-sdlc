@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       work_item:
-        description: "Intent/spec/plan path"
-        required: true
-        default: "intent/intent.md"
+        description: "Optional; must match the loop state work item"
+        required: false
+        default: ""
   issues:
     types: [labeled]
 
@@ -34,6 +34,19 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Check selected work item
+        if: ${{ inputs.work_item != '' }}
+        env:
+          WORK_ITEM: ${{ inputs.work_item }}
+        run: |
+          set -euo pipefail
+          CURRENT="$(python3 scripts/org_loop.py status --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["work_item"])')"
+          if [[ "$WORK_ITEM" != "$CURRENT" ]]; then
+            echo "Requested work item '$WORK_ITEM' does not match loop state '$CURRENT'."
+            echo "Initialize the loop explicitly: python3 scripts/org_loop.py init --work-item '$WORK_ITEM' --force"
+            exit 1
+          fi
 
       - name: Validate org state
         run: |
