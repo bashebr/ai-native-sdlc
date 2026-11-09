@@ -15,6 +15,8 @@ SCRIPT = (
     Path(__file__).resolve().parent.parent
     / "skills" / "ai-native-sdlc" / "scripts" / "org_status.py"
 )
+sys.path.insert(0, str(SCRIPT.parent))
+import org_status  # noqa: E402
 
 ORG_CHART = """\
 # Autonomous agent org.
@@ -314,6 +316,73 @@ class OrgStatusTests(unittest.TestCase):
         res = self.run_cli("status")
         self.assertEqual(res.returncode, 1)
         self.assertIn("violation", (res.stdout + res.stderr).lower())
+
+    def test_disabled_role_is_skipped(self) -> None:
+        chart = {
+            "agents": {
+                "orchestrator": {"reports_to": "ceo"},
+                "reviewer": {"reports_to": "orchestrator"},
+                "product-engineer": {
+                    "reports_to": "orchestrator",
+                    "enabled": False,
+                },
+            }
+        }
+        roles, humans = org_status._agent_roles(chart)
+        self.assertIn("orchestrator", roles)
+        self.assertIn("reviewer", roles)
+        self.assertNotIn("product-engineer", roles)
+        self.assertFalse(humans["reviewer"])
+
+    def test_escalation_owner_is_read_from_chart(self) -> None:
+        self.assertEqual(
+            org_status._escalation_owner(
+                {"escalation": {"owner": "orchestrator"}}
+            ),
+            "orchestrator",
+        )
+        self.assertEqual(
+            org_status._escalation_owner({"escalation": {}}),
+            "cto",
+        )
+
+    def test_escalation_uses_chart_owner(self) -> None:
+        chart = self.tmp / "org" / "org-chart.yaml"
+        text = chart.read_text(encoding="utf-8").replace(
+            "escalation:\n  max_disagreement_rounds: 2",
+            "escalation:\n  owner: orchestrator\n  max_disagreement_rounds: 2",
+        )
+        chart.write_text(text, encoding="utf-8")
+        self.assign("review-1")
+        self.run_cli(
+            "review",
+            "submit",
+            "--id",
+            "review-1",
+            "--verdict",
+            "changes",
+            "--evidence",
+            "round-1",
+        )
+        self.assign("review-2")
+        self.run_cli(
+            "review",
+            "submit",
+            "--id",
+            "review-2",
+            "--verdict",
+            "changes",
+            "--evidence",
+            "round-2",
+        )
+        res = self.run_cli("review", "escalate", "--id", "review-2")
+        self.assertEqual(res.returncode, 0, res.stderr + res.stdout)
+        entry = next(
+            entry
+            for entry in self.status_json()["review_queue"]
+            if entry["id"] == "review-2"
+        )
+        self.assertEqual(entry["escalated_to"], "orchestrator")
 
 
 if __name__ == "__main__":
