@@ -151,6 +151,12 @@ Organization-level examples to wire up during adoption:
 2. Tell your agent: *run the AI-native SDLC workflow from this intent.*
 3. Accept the intent, approve the spec, and confirm the agent stops at every
    gate and never crosses the production gate.
+4. Scaffold the agent org: `python3 skills/ai-native-sdlc/scripts/init_org.py /tmp/wf-demo`
+5. From `/tmp/wf-demo`, run `org_message.py check`, `org_memory.py digest`,
+   `org_memory.py check`, and `org_loop.py check`.
+6. Run `org_loop.py next --json`; it should dispatch the product manager.
+   Confirm consultations escalate, the loop stops at a human gate, and nothing
+   auto-merges or releases.
 
 ## Customization
 
