@@ -122,12 +122,31 @@ peer review of every artifact, and multi-channel demand intake:
 python3 skills/ai-native-sdlc/scripts/init_org.py my-project
 ```
 
-The default org: **CEO (you, human)** → **orchestrator** → product manager,
-architect, senior developer, security researcher, reviewer, and memory keeper.
-The orchestrator routes work and runs a deterministic bounded loop; specialists
-consult each other through versioned `org/messages/`. The memory keeper keeps
-`org/memory/context.md` compact. The loop stops after six turns, two
-no-progress turns, or a human gate — never in an unbounded retry.
+The default org is orchestrator-led:
+
+```text
+CEO (human, owner)
+ └── orchestrator
+      ├── product-manager
+      ├── architect
+      ├── senior-developer
+      ├── security-researcher
+      ├── reviewer
+      └── memory-keeper
+```
+
+The orchestrator routes work and runs the deterministic bounded loop;
+specialists consult each other through versioned `org/messages/`; the memory
+keeper keeps `org/memory/context.md` compact. The optional product-engineer
+role is disabled by default.
+
+**How a turn works.** `org_loop.py next` computes one dispatch from loop state,
+artifacts, reviews, and open messages. The dispatched role acts, records
+evidence with `advance`, and the memory digest is refreshed. `next` is
+deterministic; `advance` is the only state mutator. Defaults are six turns, two
+no-progress turns, and two review rounds. Stop reasons are `solved`,
+`gate_required`, `failed`, `stalled`, and `exhausted`. The loop never records an
+approval or crosses the human merge/release gate.
 
 ```bash
 python3 scripts/org_message.py send --from senior-developer --to architect \
@@ -137,6 +156,19 @@ python3 scripts/org_loop.py advance --role senior-developer --action implement \
   --result progress --artifact src/app.py --evidence .loop/tests.log
 python3 scripts/org_memory.py digest
 ```
+
+**Enable the GitHub Actions loop.**
+
+```bash
+cp skills/ai-native-sdlc/assets/org-loop.yml.example .github/workflows/org-loop.yml
+```
+
+Configure the `ORG_AGENT_CMD` secret. The workflow runs on manual dispatch, an
+issue labeled `agent-loop`, or an optional schedule; it dispatches exactly one
+turn and opens a PR. It needs `contents: write`, `pull-requests: write`, and
+`issues: read`, and never merges or releases. A manual `work_item` input must
+match the initialized loop state; switch work items explicitly with
+`org_loop.py init --work-item ... --force`.
 
 Demand enters through GitHub issues (`scripts/sync_issues.py pull`), app
 feedback forms, and email, all landing as versioned records in `org/intake/`.
@@ -164,7 +196,7 @@ with the script above.
 - **Hooks as red lines** — protected paths, secrets, and the release gate go in deterministic hooks, not prose. `production-gate.sh` blocks deploys without human authorization, and `scan_secrets.py` (with the `pre-commit.example` hook) blocks credentials from entering a commit; `hook-settings.example.json` shows the release-gate wiring; `managed-settings.example.json` is the regulated-enterprise starting point.
 - **Evals** — collect 20–50 real tasks with expected outcomes; run them in CI on every config change and after every incident (`agent-evals.yml.example`).
 - **Review culture** — `REVIEW.md` sets the passes (bugs, security, compliance), the evidence requirement, and the 5-nit cap.
-- **CI/CD and autonomy tiers** — agent triage runs non-interactively in the pipeline; dev is open, production needs a release manager; rollbacks are rehearsed.
+- **CI/CD and autonomy tiers** — agent triage runs non-interactively in the pipeline; `org-loop.yml.example` dispatches one bounded turn and opens a PR without merging; dev is open, production needs a release manager, and rollback paths are rehearsed.
 - **Monitoring** — `bands.yaml` defines the control bands; 1σ logs, 2σ diagnoses, 3σ proposes a fix or runbook and writes the diagnosis back as a new intent.
 
 See `skills/ai-native-sdlc/references/adoption.md` for the staged rollout order.
@@ -183,7 +215,7 @@ See `skills/ai-native-sdlc/references/adoption.md` for the staged rollout order.
 ├── examples/
 │   ├── README.md
 │   └── expense-tracker/           # worked example + real static app (Vercel-ready)
-├── tests/                         # gate, scaffold, band-detector, eval-runner tests
+├── tests/                         # gate, scaffold, org, loop, band, eval tests
 └── skills/
     └── ai-native-sdlc/
         ├── SKILL.md               # skill entrypoint (versioned; rule→enforcement matrix)
@@ -192,7 +224,7 @@ See `skills/ai-native-sdlc/references/adoption.md` for the staged rollout order.
         │   ├── playbook.md        # phase-by-phase procedures
         │   ├── adoption.md        # staged rollout + org customization
         │   ├── graph.md           # the loop as a directed graph
-        │   └── org.md             # autonomous agent org (roles, review, intake)
+        │   └── org.md             # org roles, communication, memory, bounded loop
         ├── assets/                # templates copied into target projects
         │   ├── intent.md
         │   ├── spec.md
@@ -203,7 +235,7 @@ See `skills/ai-native-sdlc/references/adoption.md` for the staged rollout order.
         │   ├── production-gate.sh
         │   ├── pre-commit.example # secret-scan pre-commit hook
         │   ├── secrets-ignore.example
-        │   ├── org/               # agent org templates (chart, roles, protocol)
+        │   ├── org/               # org chart, roles, messages, memory, loop
         │   ├── evals.example.md
         │   ├── evals.example.json
         │   ├── evals-README.md
