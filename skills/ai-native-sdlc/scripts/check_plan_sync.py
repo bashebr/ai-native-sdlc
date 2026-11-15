@@ -203,15 +203,22 @@ def _plan_gate(repo: Path, graph_path: str | None) -> str:
 
 
 def _approved_plan_record(repo: Path, ledger_path: Path, gate: str) -> tuple[bool, dict | None]:
+    """Return (approved, record) for the plan gate's latest decision.
+
+    The ledger is append-only, so the last record for the gate is the current
+    decision: a second plan's approval supersedes the first, and a later
+    rejection withdraws an earlier approval. Returns (False, record) when the
+    latest decision is not an approval, and (False, None) when there is none.
+    """
     if not ledger_path.is_file():
         return False, None
     try:
         records = gl.read_ledger(ledger_path)
     except ValueError as exc:
         raise ValueError(f"cannot read ledger {ledger_path}: {exc}") from exc
-    for record in records:
-        if record.get("gate") == gate and record.get("decision") == "approved":
-            return True, record
+    for record in reversed(records):
+        if record.get("gate") == gate:
+            return record.get("decision") == "approved", record
     return False, None
 
 
@@ -272,10 +279,18 @@ def _check(
                 return 1
         else:
             if not found:
-                print(
-                    f"error: no approved plan record for gate {gate}",
-                    file=sys.stderr,
-                )
+                if record is not None:
+                    print(
+                        f"error: latest decision for gate {gate} is "
+                        f"{record.get('decision')} ({record.get('id')}); "
+                        "the plan is not approved",
+                        file=sys.stderr,
+                    )
+                else:
+                    print(
+                        f"error: no approved plan record for gate {gate}",
+                        file=sys.stderr,
+                    )
                 return 1
             if not _verify_ledger_record(repo, path, record):
                 print(

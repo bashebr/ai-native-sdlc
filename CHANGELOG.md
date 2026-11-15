@@ -126,6 +126,15 @@ semver; keep `plugin.json` and the `version` field in SKILL.md in sync
 - `README.md`, `AGENTS.md` — validation instructions point at real artifacts;
   the loop table now has a single source of truth (SKILL.md).
 
+### Fixed
+
+- `check_plan_sync.py` now verifies the plan gate's **latest** ledger decision,
+  not the first approval. On a project's second plan it was silently validating
+  against the superseded v1 approval; a later rejection now also withdraws an
+  earlier approval (PR/CI mode reports the rejecting record).
+- `tests/test_gate.sh` no longer fails under macOS bash 3.2: an empty `envs`
+  array tripped `set -u` (`envs[@]: unbound variable`), failing 27 cases.
+
 ## [0.1.0] — 2026-08-21
 
 Initial release: skill + plugin bundle implementing the AI-native SDLC loop
