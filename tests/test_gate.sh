@@ -18,7 +18,7 @@ check() {
   while [[ "$1" != "--" ]]; do envs+=("$1"); shift; done
   shift
   local out code
-  out="$(env "${envs[@]}" bash "$GATE" "$@" 2>&1)"
+  out="$(env ${envs[@]+"${envs[@]}"} bash "$GATE" "$@" 2>&1)"
   code=$?
   if [[ "$code" -eq "$want" ]]; then
     pass=$((pass + 1))
