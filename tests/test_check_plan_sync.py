@@ -72,6 +72,10 @@ class PlanSyncTests(unittest.TestCase):
     def record_plan_approval(self) -> None:
         self.write("src/base.py", "BASE = 1\n")
         self.write("plan.md", self.base_plan())
+        self.add_ledger_record("engineer_approve-001")
+        self.commit("plan approval")
+
+    def add_ledger_record(self, record_id: str, decision: str = "approved") -> None:
         ledger = self.root / "gates" / "ledger.jsonl"
         ledger.parent.mkdir(parents=True, exist_ok=True)
         subprocess.run(
@@ -88,15 +92,16 @@ class PlanSyncTests(unittest.TestCase):
                 "--approver",
                 "Ada",
                 "--evidence",
-                "review-plan-1",
+                f"review-{record_id}",
+                "--decision",
+                decision,
                 "--id",
-                "engineer_approve-001",
+                record_id,
             ],
             check=True,
             capture_output=True,
             text=True,
         )
-        self.commit("plan approval")
 
     def test_process_only_changes_pass_without_plan(self) -> None:
         self.initial_commit()
@@ -198,6 +203,32 @@ class PlanSyncTests(unittest.TestCase):
         self.commit("next planned change")
         res = self.run_cli("--base", "HEAD~1", "--head", "HEAD", "--ledger", "gates/ledger.jsonl")
         self.assertEqual(res.returncode, 0, res.stderr + res.stdout)
+
+    def test_latest_plan_approval_is_the_one_verified(self) -> None:
+        # A second plan (v2) gets a second approval; the check must use it, not v1's.
+        self.initial_commit()
+        self.record_plan_approval()
+        self.add_ledger_record("engineer_approve-002")
+        self.commit("plan v2 approval")
+        self.write("src/new.py", "NEW = 1\n")
+        self.write("plan.md", PLAN.format(files="- src/base.py\n- src/new.py"))
+        self.commit("v2 change")
+        res = self.run_cli("--base", "HEAD~1", "--head", "HEAD", "--ledger", "gates/ledger.jsonl")
+        self.assertEqual(res.returncode, 0, res.stderr + res.stdout)
+        self.assertIn("engineer_approve-002", res.stdout)
+        self.assertNotIn("engineer_approve-001", res.stdout)
+
+    def test_later_rejection_overrides_older_approval(self) -> None:
+        self.initial_commit()
+        self.record_plan_approval()
+        self.add_ledger_record("engineer_approve-002", decision="rejected")
+        self.commit("plan v2 rejected")
+        self.write("src/new.py", "NEW = 1\n")
+        self.write("plan.md", PLAN.format(files="- src/base.py\n- src/new.py"))
+        self.commit("change after rejection")
+        res = self.run_cli("--base", "HEAD~1", "--head", "HEAD", "--ledger", "gates/ledger.jsonl")
+        self.assertEqual(res.returncode, 1, res.stdout)
+        self.assertIn("engineer_approve-002", res.stdout + res.stderr)
 
     def test_ledger_chain_break_fails(self) -> None:
         self.initial_commit()
