@@ -126,6 +126,17 @@ semver; keep `plugin.json` and the `version` field in SKILL.md in sync
 - `README.md`, `AGENTS.md` — validation instructions point at real artifacts;
   the loop table now has a single source of truth (SKILL.md).
 
+### Fixed
+
+- `sync_issues.py pull` failed on every run: it passed `--page` to
+  `gh issue list`, which has no such flag (`gh` pages through results itself up
+  to `--limit`). It now fetches all open issues in one call with a 1000-issue
+  limit and warns if that limit is reached. Repos given as URLs
+  (`https://github.com/o/r`, `git@github.com:o/r.git`) are normalised to `o/r`
+  for record file names and state keys. A new test checks every flag the script
+  passes against the installed `gh`'s own `--help` (the mocked tests couldn't
+  catch an invented flag).
+
 ## [0.1.0] — 2026-08-21
 
 Initial release: skill + plugin bundle implementing the AI-native SDLC loop
