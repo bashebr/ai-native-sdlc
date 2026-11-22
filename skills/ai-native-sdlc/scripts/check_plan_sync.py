@@ -59,6 +59,23 @@ PROCESS_ENTRIES = (
     "README.md",
     "LICENSE",
     "SECURITY.md",
+    # Workflow tooling copied in by init_workflow.py and init_org.py. Exact files,
+    # not scripts/: a project's own scripts are implementation and need a plan
+    # entry. tests/test_check_plan_sync.py keeps this list in sync with both
+    # scaffolders' FILES maps.
+    "scripts/check_plan_sync.py",
+    "scripts/detect_bands.py",
+    "scripts/gate_ledger.py",
+    "scripts/run_evals.py",
+    "scripts/scan_secrets.py",
+    "scripts/workflow_state.py",
+    "scripts/intake.py",
+    "scripts/org_common.py",
+    "scripts/org_loop.py",
+    "scripts/org_memory.py",
+    "scripts/org_message.py",
+    "scripts/org_status.py",
+    "scripts/sync_issues.py",
 )
 
 STATUS_RE = re.compile(r"(?im)^\s*[-*]\s*Status\s*:\s*Approved\s*$")

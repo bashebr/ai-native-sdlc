@@ -18,6 +18,28 @@ GATE_LEDGER = (
     Path(__file__).resolve().parent.parent
     / "skills" / "ai-native-sdlc" / "scripts" / "gate_ledger.py"
 )
+SCRIPTS_DIR = SCRIPT.parent
+
+
+def _load(name: str):
+    """Import a skill script by file path (scripts/ is not a package)."""
+    import importlib.util
+
+    if str(SCRIPTS_DIR) not in sys.path:
+        sys.path.insert(0, str(SCRIPTS_DIR))
+    spec = importlib.util.spec_from_file_location(f"_skill_{name}", SCRIPTS_DIR / f"{name}.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+# Every scripts/ file the scaffolders copy into a project, read from their own maps.
+SCAFFOLDED_SCRIPTS = sorted(
+    dest
+    for scaffolder in ("init_workflow", "init_org")
+    for dest in _load(scaffolder).FILES
+    if dest.startswith("scripts/")
+)
 
 
 PLAN = """\
@@ -105,6 +127,24 @@ class PlanSyncTests(unittest.TestCase):
         self.commit("docs only")
         res = self.run_cli("--base", "HEAD~1", "--head", "HEAD")
         self.assertEqual(res.returncode, 0, res.stderr + res.stdout)
+
+    def test_scaffolded_tooling_scripts_need_no_plan_entry(self) -> None:
+        # Scripts init_workflow.py / init_org.py copy into a project are workflow
+        # tooling: adding or re-copying them must not be flagged as unplanned.
+        self.initial_commit()
+        for rel in SCAFFOLDED_SCRIPTS:
+            self.write(rel, "# tooling\n")
+        self.commit("scaffold tooling")
+        res = self.run_cli("--base", "HEAD~1", "--head", "HEAD")
+        self.assertEqual(res.returncode, 0, res.stderr + res.stdout)
+
+    def test_project_own_script_still_needs_plan_entry(self) -> None:
+        self.initial_commit()
+        self.write("scripts/deploy_helper.py", "X = 1\n")
+        self.commit("own script")
+        res = self.run_cli("--base", "HEAD~1", "--head", "HEAD")
+        self.assertEqual(res.returncode, 1)
+        self.assertIn("scripts/deploy_helper.py", res.stdout + res.stderr)
 
     def test_missing_plan_fails(self) -> None:
         self.initial_commit()
@@ -245,3 +285,12 @@ def git(repo: Path, *args: str) -> None:
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ScaffoldSyncTests(unittest.TestCase):
+    """check_plan_sync must treat every script the scaffolders copy as process tooling."""
+
+    def test_process_entries_cover_scaffolded_scripts(self) -> None:
+        missing = sorted(set(SCAFFOLDED_SCRIPTS) - set(_load("check_plan_sync").PROCESS_ENTRIES))
+        self.assertEqual(missing, [], "add these to PROCESS_ENTRIES in check_plan_sync.py")
+        self.assertGreaterEqual(len(SCAFFOLDED_SCRIPTS), 13)

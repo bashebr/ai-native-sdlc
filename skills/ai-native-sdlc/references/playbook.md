@@ -89,7 +89,9 @@ python3 scripts/check_plan_sync.py --hook --graph workflow-graph.yaml
 globs (no prose). A change that departs from the approved manifest must add the
 file to that section in the same change set; editing prose or toggling Status
 does not exempt unplanned files. Process artifacts (`docs/`, `gates/`, `org/`,
-evals, workflow-graph.yaml, etc.) never trigger the plan requirement.
+evals, workflow-graph.yaml, etc.) never trigger the plan requirement, and neither
+do the tooling scripts `init_workflow.py` and `init_org.py` copy into `scripts/`.
+A project's own scripts still need a plan entry.
 
 ### Auto mode
 

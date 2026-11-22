@@ -126,6 +126,15 @@ semver; keep `plugin.json` and the `version` field in SKILL.md in sync
 - `README.md`, `AGENTS.md` — validation instructions point at real artifacts;
   the loop table now has a single source of truth (SKILL.md).
 
+### Fixed
+
+- `check_plan_sync.py` no longer flags the workflow's own tooling as unplanned.
+  The 13 scripts that `init_workflow.py` and `init_org.py` copy into `scripts/`
+  (for example `org_loop.py`, `gate_ledger.py`) are now process paths, so
+  scaffolding the agent org or re-copying an updated script needs no plan edit.
+  A project's own `scripts/` files still need a plan entry. A test keeps the list
+  in sync with both scaffolders' `FILES` maps.
+
 ## [0.1.0] — 2026-08-21
 
 Initial release: skill + plugin bundle implementing the AI-native SDLC loop
